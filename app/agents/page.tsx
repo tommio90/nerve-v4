@@ -123,13 +123,18 @@ export default function AgentsPage() {
   const orgTree = useMemo(() => {
     const map = new Map<string | null, Agent[]>();
     agents.forEach((agent) => {
-      const key = agent.reportingTo ?? "root";
+      const key = agent.reportingTo === "founder" || agent.reportingTo == null ? "root" : agent.reportingTo;
       const list = map.get(key) ?? [];
       list.push(agent);
       map.set(key, list);
     });
     return map;
   }, [agents]);
+
+  const reportingLabel = (value: string | null) => {
+    if (!value || value === "founder") return "founder";
+    return agents.find((agent) => agent.id === value)?.name ?? value;
+  };
 
   const renderNode = (agent: Agent) => {
     const children = orgTree.get(agent.id) ?? [];
@@ -201,7 +206,7 @@ export default function AgentsPage() {
                 <span className="font-medium">{agent.name}</span>
                 <Badge className={ROLE_TONES[agent.role] ?? ""}>{agent.role}</Badge>
                 <Badge className={STATUS_TONES[agent.status] ?? STATUS_TONES.idle}>{agent.status}</Badge>
-                <span className="text-muted-foreground truncate">{agent.reportingTo ?? "founder"}</span>
+                <span className="text-muted-foreground truncate">{reportingLabel(agent.reportingTo)}</span>
               </div>
             ))}
           </div>

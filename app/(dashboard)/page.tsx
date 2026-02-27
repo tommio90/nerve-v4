@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, ClipboardCheck, Clock, FolderOpen, ListTodo, AlertTriangle, CheckCircle2, KanbanSquare, Target, FlaskConical, Bot, Users, MessageSquare } from "lucide-react";
+import { Activity, ClipboardCheck, Clock, FolderOpen, ListTodo, AlertTriangle, CheckCircle2, KanbanSquare, FlaskConical, Bot, Users, MessageSquare } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { StatusBadge } from "@/components/shared/status-badge";

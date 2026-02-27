@@ -42,10 +42,11 @@ function normalize(contact: {
   };
 }
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const contact = await db.cRMContact.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { interviews: true },
     });
     if (!contact) return fail("Contact not found", "NOT_FOUND", 404);
@@ -55,8 +56,9 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   }
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const payload = patchSchema.parse(await request.json());
     const data: Record<string, unknown> = {};
     if (payload.name !== undefined) data.name = payload.name;
@@ -72,7 +74,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     if (payload.signals !== undefined) data.signals = JSON.stringify(payload.signals);
     if (payload.followUps !== undefined) data.followUps = JSON.stringify(payload.followUps);
 
-    const contact = await db.cRMContact.update({ where: { id: params.id }, data });
+    const contact = await db.cRMContact.update({ where: { id }, data });
     return ok({ contact: normalize(contact) });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -82,9 +84,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await db.cRMContact.delete({ where: { id: params.id } });
+    const { id } = await params;
+    await db.cRMContact.delete({ where: { id } });
     return ok({ deleted: true });
   } catch (error) {
     return fail(error instanceof Error ? error.message : "Failed to delete contact", "INTERNAL_ERROR", 500);

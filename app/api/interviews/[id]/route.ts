@@ -35,10 +35,11 @@ function normalize(interview: {
   };
 }
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const interview = await db.interview.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         contact: { select: { id: true, name: true, organization: true, email: true } },
       },
@@ -50,8 +51,9 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   }
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const payload = patchSchema.parse(await request.json());
     const data: Record<string, unknown> = {};
     if (payload.transcript !== undefined) data.transcript = payload.transcript;
@@ -68,7 +70,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     if (payload.completedAt !== undefined) data.completedAt = payload.completedAt ? new Date(payload.completedAt) : null;
 
     const interview = await db.interview.update({
-      where: { id: params.id },
+      where: { id },
       data,
       include: {
         contact: { select: { id: true, name: true, organization: true, email: true } },
@@ -83,9 +85,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await db.interview.delete({ where: { id: params.id } });
+    const { id } = await params;
+    await db.interview.delete({ where: { id } });
     return ok({ deleted: true });
   } catch (error) {
     return fail(error instanceof Error ? error.message : "Failed to delete interview", "INTERNAL_ERROR", 500);

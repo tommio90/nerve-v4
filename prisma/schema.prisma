@@ -1,0 +1,261 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model ContextSnapshot {
+  id               String    @id @default(cuid())
+  createdAt        DateTime  @default(now())
+  sources          String    @default("[]") // JSON
+  summary          String    @default("")
+  diffFromPrevious String?
+  projects         Project[]
+}
+
+model Project {
+  id                String     @id @default(cuid())
+  title             String
+  description       String
+  status            String     @default("PROPOSED") // PROPOSED|ACTIVE|DEFERRED|COMPLETED|ARCHIVED
+  thesisScore       Float      @default(0)
+  scope             String     @default("M") // S|M|L
+  reasoning         String     @default("")
+  whitepaperDocId   String?    // Link to auto-generated whitepaper doc
+  contextSnapshotId String?
+  contextSnapshot   ContextSnapshot? @relation(fields: [contextSnapshotId], references: [id], onDelete: SetNull)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  tasks             Task[]
+  artifacts         Artifact[]
+
+  @@index([status])
+  @@index([contextSnapshotId])
+  @@index([whitepaperDocId])
+}
+
+model Task {
+  id           String         @id @default(cuid())
+  projectId    String
+  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title        String
+  description  String
+  deliverable  String         @default("")
+  type         String         @default("CUSTOM") // RESEARCH|CONTENT|ANALYSIS|OUTREACH|PHONE_CALL|CUSTOM
+  status       String         @default("PROPOSED") // PROPOSED|APPROVED|QUEUED|IN_PROGRESS|REVIEW|COMPLETE|FAILED
+  modelTier    String         @default("BALANCED") // FAST|BALANCED|DEEP
+  priority     Int            @default(3)
+  executionLog ExecutionLog[]
+  artifacts    Artifact[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+}
+
+model ExecutionLog {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  timestamp DateTime @default(now())
+  message   String
+  level     String   @default("INFO") // INFO|WARN|ERROR
+
+  @@index([taskId, timestamp])
+}
+
+model Artifact {
+  id        String   @id @default(cuid())
+  taskId    String?
+  task      Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title     String
+  type      String   @default("DOCUMENT") // DOCUMENT|RESEARCH|ANALYSIS|TRANSCRIPT|MEDIA|DATA
+  mimeType  String   @default("text/plain")
+  content   String?
+  filePath  String?
+  sizeBytes Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([taskId])
+  @@index([type])
+}
+
+model Decision {
+  id         String   @id @default(cuid())
+  entityType String   // PROJECT|TASK
+  entityId   String
+  action     String   // APPROVE|REJECT|DEFER
+  feedback   String?
+  context    String   @default("{}") // JSON
+  createdAt  DateTime @default(now())
+  metadata   String   @default("{}") // JSON
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model PreferenceVector {
+  id         String   @id @default(cuid())
+  dimension  String
+  value      Float
+  confidence Float
+  sampleSize Int      @default(0)
+  updatedAt  DateTime @updatedAt
+  reasoning  String   @default("")
+
+  @@index([dimension])
+}
+
+model Contact {
+  id           String   @id @default(cuid())
+  name         String
+  email        String?
+  phone        String?
+  organization String?
+  notes        String?
+  metadata     String   @default("{}") // JSON
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model KnowledgeDocument {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  sourceUrl String?
+  filePath  String?
+  mimeType  String   @default("text/markdown")
+  tags      String   @default("[]") // JSON
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Doc {
+  id        String       @id @default(cuid())
+  title     String
+  summary   String?
+  content   String
+  category  String?
+  venture   String?
+  source    String?
+  tags      String       @default("[]") // JSON
+  messages  DocMessage[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([createdAt])
+}
+
+model DocMessage {
+  id        String   @id @default(cuid())
+  docId     String
+  doc       Doc      @relation(fields: [docId], references: [id], onDelete: Cascade)
+  role      String   // user|assistant
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([docId, createdAt])
+}
+
+model Skill {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  status      String   @default("active") // active|disabled|draft
+  type        String   @default("workflow") // workflow|integration|automation
+  models      String   @default("[]") // JSON array of model ids used
+  config      String   @default("{}") // JSON config/metadata
+  lastRunAt   DateTime?
+  runCount    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([name])
+}
+
+model CouncilSession {
+  id              String   @id @default(cuid())
+  taskTitle       String
+  taskDescription String
+  venture         String?
+  entityType      String?  // PROJECT|TASK|DOC
+  entityId        String?
+  proposalDocId   String?  // Link to the original NERVE doc (proposal)
+  status          String   @default("pending") // pending|debating|decided|failed
+  opusAnalysis    String?  // JSON - Claude Sonnet 4.5 (formerly Opus)
+  o3Analysis      String?  // JSON - DeepSeek R1 (formerly O3)
+  geminiAnalysis  String?  // JSON - Gemini 2.5 Pro
+  qwenAnalysis    String?  // JSON - Qwen3 Coder (new)
+  aggregateScore  Float?
+  recommendation  String?  // approve|reject|revise
+  confidence      String?  // high|medium|low
+  summary         String?
+  actionId        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+  @@index([entityType, entityId])
+  @@index([proposalDocId])
+  @@index([createdAt])
+}

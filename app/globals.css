@@ -1,0 +1,218 @@
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;500&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 3 3 3;
+  --foreground: 247 249 255;
+  --card: 10 10 10;
+  --card-foreground: 247 249 255;
+  --muted: 17 17 17;
+  --muted-foreground: 168 176 204;
+  --border: 255 255 255;
+  --glass: 10 10 10;
+  --status-proposed: 6 182 212;
+  --status-progress: 250 204 21;
+  --status-complete: 16 185 129;
+  --status-failed: 239 68 68;
+  --status-deferred: 148 163 184;
+  --radius: 0.95rem;
+}
+
+* {
+  border-color: rgba(var(--border), 0.1);
+}
+
+html,
+body {
+  min-height: 100%;
+  background: rgb(var(--background));
+  color: rgb(var(--foreground));
+}
+
+body {
+  font-family: Inter, "Segoe UI", sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  text-rendering: optimizeLegibility;
+}
+
+code,
+pre,
+.font-mono {
+  font-family: "JetBrains Mono", "SFMono-Regular", monospace;
+}
+
+.synapse-page {
+  position: relative;
+  isolation: isolate;
+}
+
+.synapse-page::before {
+  content: "";
+  position: absolute;
+  inset: -3rem -1rem auto;
+  height: 18rem;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 20% 40%, rgba(139, 92, 246, 0.28), transparent 58%),
+    radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.2), transparent 52%);
+  filter: blur(10px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.synapse-display {
+  font-family: "Instrument Serif", serif;
+  font-size: clamp(2rem, 4.5vw, 4.1rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 0.96;
+}
+
+.synapse-heading-lg {
+  font-family: "Instrument Serif", serif;
+  font-size: clamp(2rem, 3.4vw, 2.7rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.synapse-heading {
+  font-size: clamp(1.28rem, 2.3vw, 1.75rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.glass-panel {
+  background: rgba(var(--glass), 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(var(--border), 0.1);
+}
+
+.text-shimmer {
+  background: linear-gradient(100deg, #f5f7ff 25%, #8b5cf6 43%, #06b6d4 56%, #f5f7ff 72%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: text-shimmer 4.2s linear infinite;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(14px);
+  animation: orb-float 10s cubic-bezier(0.23, 1, 0.32, 1) infinite alternate;
+  pointer-events: none;
+}
+
+.orb-violet {
+  background: radial-gradient(circle at 35% 35%, rgba(139, 92, 246, 0.7), rgba(139, 92, 246, 0));
+}
+
+.orb-cyan {
+  background: radial-gradient(circle at 35% 35%, rgba(6, 182, 212, 0.7), rgba(6, 182, 212, 0));
+}
+
+.orb-emerald {
+  background: radial-gradient(circle at 35% 35%, rgba(16, 185, 129, 0.6), rgba(16, 185, 129, 0));
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes synapse-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orb-float {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    transform: translateY(-20px) scale(1.05);
+  }
+}
+
+@keyframes text-shimmer {
+  0% {
+    background-position: 220% 50%;
+  }
+  100% {
+    background-position: -220% 50%;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 260ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 420ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 340ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.stagger-1 {
+  animation-delay: 0.2s;
+  animation-fill-mode: both;
+}
+
+.stagger-2 {
+  animation-delay: 0.4s;
+  animation-fill-mode: both;
+}
+
+.stagger-3 {
+  animation-delay: 0.6s;
+  animation-fill-mode: both;
+}
+
+.stagger-4 {
+  animation-delay: 0.8s;
+  animation-fill-mode: both;
+}
+
+a,
+button,
+input,
+textarea,
+select {
+  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+}

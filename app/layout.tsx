@@ -4,7 +4,7 @@ import { ToastProvider } from "@/components/ui/toast";
 import { AppShell } from "@/components/shared/app-shell";
 
 export const metadata: Metadata = {
-  title: "NERVE v3",
+  title: "NERVE v4",
   description: "AI decision intelligence platform",
 };
 

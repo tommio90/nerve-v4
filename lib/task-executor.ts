@@ -104,7 +104,7 @@ async function generateWithGpt4o(prompt: string): Promise<string> {
         content: [
           {
             type: "input_text",
-            text: "You are NERVE v3's autonomous execution engine. Produce practical, high-quality markdown with clear structure.",
+            text: "You are NERVE v4's autonomous execution engine. Produce practical, high-quality markdown with clear structure.",
           },
         ],
       },
@@ -138,7 +138,7 @@ async function generateWithGeminiFlash(prompt: string): Promise<string> {
         {
           role: "system",
           content:
-            "You are NERVE v3's research synthesizer. Return concise but complete markdown with explicit source references.",
+            "You are NERVE v4's research synthesizer. Return concise but complete markdown with explicit source references.",
         },
         { role: "user", content: prompt },
       ],
@@ -163,7 +163,7 @@ async function generateWithGeminiFlash(prompt: string): Promise<string> {
 async function webFetch(url: string): Promise<{ url: string; text: string }> {
   const response = await fetch(url, {
     headers: {
-      "User-Agent": "NERVE-v3-task-executor/1.0",
+      "User-Agent": "NERVE-v4-task-executor/1.0",
       Accept: "text/html,application/xhtml+xml,application/xml,text/plain;q=0.9,*/*;q=0.8",
     },
     cache: "no-store",

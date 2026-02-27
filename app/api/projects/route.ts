@@ -48,7 +48,7 @@ ${payload.description}
 ${payload.reasoning}
 
 ## Strategic Context
-This project was created as part of the NERVE v3 decision intelligence framework. It represents ${payload.scope === 'S' ? 'a small, tactical initiative' : payload.scope === 'M' ? 'a medium-sized strategic initiative' : 'a large, transformative initiative'}.
+This project was created as part of the NERVE v4 decision intelligence framework. It represents ${payload.scope === 'S' ? 'a small, tactical initiative' : payload.scope === 'M' ? 'a medium-sized strategic initiative' : 'a large, transformative initiative'}.
 
 ## Core Thesis
 **"AI optimizes within distributions. Humans expand distributions. The future belongs to those who cultivate curiosity."**

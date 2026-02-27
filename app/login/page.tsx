@@ -28,7 +28,7 @@ export default async function LoginPage({
             <ShieldCheck className="h-5 w-5 text-violet" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold tracking-[-0.02em] text-foreground">NERVE v3</h1>
+            <h1 className="text-xl font-semibold tracking-[-0.02em] text-foreground">NERVE v4</h1>
             <p className="text-xs text-muted-foreground">Sign in to continue</p>
           </div>
         </div>

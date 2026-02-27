@@ -259,3 +259,126 @@ model CouncilSession {
   @@index([proposalDocId])
   @@index([createdAt])
 }
+
+model OKR {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  quarter     String
+  status      String      @default("ACTIVE") // ACTIVE|COMPLETED|CANCELLED
+  keyResults  KeyResult[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([status])
+  @@index([quarter])
+}
+
+model KeyResult {
+  id        String   @id @default(cuid())
+  okrId     String
+  okr       OKR      @relation(fields: [okrId], references: [id], onDelete: Cascade)
+  title     String
+  target    Float
+  current   Float    @default(0)
+  unit      String   @default("") // e.g. "interviews", "users", "%"
+  status    String   @default("ON_TRACK") // ON_TRACK|AT_RISK|BEHIND|COMPLETED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([okrId])
+  @@index([status])
+}
+
+model Assumption {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  riskLevel   Int      @default(3) // 1=low to 5=critical
+  status      String   @default("UNVALIDATED") // UNVALIDATED|VALIDATING|CONFIRMED|INVALIDATED
+  confidence  Float    @default(0) // 0-100
+  evidence    String   @default("") // freetext, grows over time
+  projectId   String?  // optional link to project
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([riskLevel])
+}
+
+model AgentNode {
+  id           String   @id @default(cuid())
+  name         String
+  role         String   // CEO|PM|GTM|OPS|DEV|PERSONA|RESEARCH|OUTREACH|INTERVIEW|DESIGN|CONTENT|ANALYTICS|CRM|MEMORY|COST|ARCHITECT|BUILDER|QA
+  description  String   @default("")
+  capabilities String   @default("[]") // JSON array
+  tools        String   @default("[]") // JSON array of tool names
+  memoryScope  String   @default("[]") // JSON array of memory layer keys
+  reportingTo  String?  // id of parent AgentNode or "founder"
+  approvalTier String   @default("soft") // auto|soft|hard|escalate
+  status       String   @default("idle") // idle|working|blocked|error
+  config       String   @default("{}") // JSON
+  okrLinks     String   @default("[]") // JSON array of OKR ids
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([role])
+  @@index([status])
+}
+
+model Persona {
+  id                  String   @id @default(cuid())
+  name                String
+  archetype           String   @default("")
+  demographics        String   @default("{}") // JSON
+  goals               String   @default("[]") // JSON
+  pains               String   @default("[]") // JSON
+  behaviors           String   @default("[]") // JSON
+  dayInLife           String   @default("")
+  aiAdoptionReadiness Float    @default(0) // 0-100
+  notes               String   @default("")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model CRMContact {
+  id            String      @id @default(cuid())
+  name          String
+  email         String?
+  linkedin      String?
+  twitter       String?
+  organization  String?
+  personaId     String?     // linked Persona
+  personaScore  Float       @default(0) // 0-100 match score
+  pipelineStage String      @default("LEAD") // LEAD|CONTACTED|INTERVIEWED|CUSTOMER|ADVOCATE
+  pains         String      @default("[]") // JSON
+  objections    String      @default("[]") // JSON
+  signals       String      @default("[]") // JSON
+  followUps     String      @default("[]") // JSON
+  notes         String      @default("")
+  interviews    Interview[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([pipelineStage])
+  @@index([personaId])
+}
+
+model Interview {
+  id           String     @id @default(cuid())
+  contactId    String
+  contact      CRMContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  transcript   String     @default("")
+  questions    String     @default("[]") // JSON
+  insights     String     @default("[]") // JSON array of {type, content}
+  assumptions  String     @default("[]") // JSON array of {assumptionId, validated, evidence}
+  status       String     @default("SCHEDULED") // SCHEDULED|COMPLETED|CANCELLED
+  scheduledAt  DateTime?
+  completedAt  DateTime?
+  followUpSent Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([contactId])
+  @@index([status])
+}

@@ -12,3 +12,12 @@ export const NAV_ITEMS = [
   { href: "/calls", label: "Calls", icon: "Phone" },
   { href: "/settings", label: "Settings", icon: "Cog" },
 ];
+
+export const STARTUP_OS_ITEMS = [
+  { href: "/okrs", label: "OKRs", icon: "Target" },
+  { href: "/assumptions", label: "Assumptions", icon: "FlaskConical" },
+  { href: "/agents", label: "Agents", icon: "Bot" },
+  { href: "/personas", label: "Personas", icon: "Users" },
+  { href: "/crm", label: "CRM", icon: "Contact" },
+  { href: "/interviews", label: "Interviews", icon: "MessageSquare" },
+];

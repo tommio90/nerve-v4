@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, ClipboardCheck, Clock, FolderOpen, ListTodo, AlertTriangle, CheckCircle2, KanbanSquare } from "lucide-react";
+import { Activity, ClipboardCheck, Clock, FolderOpen, ListTodo, AlertTriangle, CheckCircle2, KanbanSquare, Target, FlaskConical, Bot, Users, MessageSquare } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -15,6 +15,9 @@ type DashboardData = {
   latestSnapshot: { createdAt: string } | null;
   queueDepth: number;
   recentCouncilSessions: { id: string; taskTitle: string; status: string; aggregateScore: number | null; createdAt: string }[];
+  okrs: { id: string; title: string; quarter: string; status: string; keyResults: { current: number; target: number }[] }[];
+  startupStats: { openAssumptions: number; interviewsThisWeek: number; activeAgents: number; personas: number };
+  currentQuarter: string;
 };
 
 function MetricCard({
@@ -84,11 +87,58 @@ export default function DashboardPage() {
     );
   }
 
+  const okrProgress = (okr: DashboardData["okrs"][number]) => {
+    if (!okr.keyResults.length) return 0;
+    const total = okr.keyResults.reduce((acc, kr) => acc + (kr.target ? Math.min(100, (kr.current / kr.target) * 100) : 0), 0);
+    return Math.round(total / okr.keyResults.length);
+  };
+
+  const okrTone = (value: number) => {
+    if (value >= 80) return { bar: "bg-emerald-400", badge: "bg-emerald-400/20 text-emerald-300" };
+    if (value >= 50) return { bar: "bg-yellow-400", badge: "bg-yellow-400/20 text-yellow-300" };
+    return { bar: "bg-red-400", badge: "bg-red-400/20 text-red-300" };
+  };
+
   return (
     <div className="synapse-page animate-fade-in space-y-6">
       <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_20%_30%,rgba(139,92,246,0.25),transparent_55%),radial-gradient(circle_at_80%_20%,rgba(6,182,212,0.2),transparent_52%),rgba(255,255,255,0.02)] p-6 sm:p-8">
         <h1 className="synapse-display text-shimmer">NERVE Command Deck</h1>
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground">Decision intelligence at a glance with approvals, council outputs, and execution flow in one surface.</p>
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">OKR Health · {data.currentQuarter}</h2>
+          <span className="text-xs text-muted-foreground">{data.okrs.length} OKRs</span>
+        </div>
+        {data.okrs.length === 0 ? (
+          <Card className="p-4 text-sm text-muted-foreground">No OKRs for the current quarter.</Card>
+        ) : (
+          <div className="grid gap-3 lg:grid-cols-2">
+            {data.okrs.map((okr) => {
+              const progress = okrProgress(okr);
+              const tone = okrTone(progress);
+              return (
+                <Card key={okr.id} className="space-y-2 p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-semibold">{okr.title}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-xs ${tone.badge}`}>{progress}%</span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full border border-white/10 bg-white/5">
+                    <div className={`h-full transition-all duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] ${tone.bar}`} style={{ width: `${progress}%` }} />
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard icon={FlaskConical} label="Open Assumptions" value={data.startupStats.openAssumptions} tone="red" />
+        <MetricCard icon={MessageSquare} label="Interviews This Week" value={data.startupStats.interviewsThisWeek} tone="cyan" />
+        <MetricCard icon={Bot} label="Active Agents" value={data.startupStats.activeAgents} tone="emerald" />
+        <MetricCard icon={Users} label="Personas" value={data.startupStats.personas} tone="violet" />
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, ClipboardCheck, Clock, FolderOpen, ListTodo, AlertTriangle, CheckCircle2, KanbanSquare, FlaskConical, Bot, Users, MessageSquare } from "lucide-react";
+import { Activity, ClipboardCheck, Clock, FolderOpen, KanbanSquare, FlaskConical, Bot, MessageSquare } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -61,14 +61,9 @@ export default function DashboardPage() {
   }, []);
 
   const metrics = useMemo(() => {
-    if (!data) {
-      return { totalProjects: 0, totalTasks: 0, pendingApprovals: 0, completedTasks: 0 };
-    }
+    if (!data) return { totalProjects: 0 };
     const totalProjects = data.activeProjects.length + data.pendingProjects.length;
-    const totalTasks = data.pendingTasks.length + data.activeProjects.reduce((acc, p) => acc + p.tasks.length, 0);
-    const pendingApprovals = data.pendingProjects.length + data.pendingTasks.length;
-    const completedTasks = data.activeProjects.reduce((acc, p) => acc + p.tasks.filter((t) => t.status === "COMPLETE").length, 0);
-    return { totalProjects, totalTasks, pendingApprovals, completedTasks };
+    return { totalProjects };
   }, [data]);
 
   if (!data) {
@@ -135,24 +130,17 @@ export default function DashboardPage() {
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard icon={KanbanSquare} label="Total Projects" value={metrics.totalProjects} tone="violet" />
         <MetricCard icon={FlaskConical} label="Open Assumptions" value={data.startupStats.openAssumptions} tone="red" />
         <MetricCard icon={MessageSquare} label="Interviews This Week" value={data.startupStats.interviewsThisWeek} tone="cyan" />
         <MetricCard icon={Bot} label="Active Agents" value={data.startupStats.activeAgents} tone="emerald" />
-        <MetricCard icon={Users} label="Personas" value={data.startupStats.personas} tone="violet" />
-      </section>
-
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard icon={KanbanSquare} label="Total Projects" value={metrics.totalProjects} tone="violet" />
-        <MetricCard icon={ListTodo} label="Total Tasks" value={metrics.totalTasks} tone="cyan" />
-        <MetricCard icon={AlertTriangle} label="Pending Approvals" value={metrics.pendingApprovals} tone="red" />
-        <MetricCard icon={CheckCircle2} label="Completed Tasks" value={metrics.completedTasks} tone="emerald" />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
         <Card className="space-y-3">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
             <ClipboardCheck className="h-4 w-4 text-cyan" />
-            Pending Approvals
+            Pending Projects
           </h2>
           <div className="space-y-2">
             {data.pendingProjects.map((project) => (
@@ -163,17 +151,7 @@ export default function DashboardPage() {
                 </div>
               </Link>
             ))}
-            {data.pendingTasks.map((task) => (
-              <Link key={task.id} href={`/tasks/${task.id}`} className="block rounded-xl border border-white/10 bg-white/3 p-2.5 text-sm transition-all duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] hover:border-cyan/35 hover:bg-white/10">
-                <div className="flex items-center justify-between gap-2">
-                  <p>
-                    {task.title} · {task.project.title}
-                  </p>
-                  <StatusBadge status={task.status} />
-                </div>
-              </Link>
-            ))}
-            {data.pendingProjects.length + data.pendingTasks.length === 0 && <p className="text-sm text-muted-foreground">No pending approvals.</p>}
+            {data.pendingProjects.length === 0 && <p className="text-sm text-muted-foreground">No pending projects.</p>}
           </div>
         </Card>
 
@@ -248,29 +226,6 @@ export default function DashboardPage() {
         </Card>
       </section>
 
-      <section>
-        <Card className="space-y-3">
-          <h2 className="flex items-center gap-2 text-sm font-semibold">
-            <Activity className="h-4 w-4 text-violet" />
-            Recent Council Sessions
-          </h2>
-          <div className="space-y-2">
-            {data.recentCouncilSessions.map((session) => (
-              <Link key={session.id} href="/council" className="block rounded-xl border border-white/10 bg-white/3 p-2.5 transition-all duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] hover:border-violet/35 hover:bg-white/10">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="truncate text-sm">{session.taskTitle}</span>
-                  <span className="text-xs text-muted-foreground">{session.status}</span>
-                </div>
-                <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{new Date(session.createdAt).toLocaleString()}</span>
-                  <span>{session.aggregateScore != null ? `Score ${session.aggregateScore.toFixed(2)}` : "No score yet"}</span>
-                </div>
-              </Link>
-            ))}
-            {data.recentCouncilSessions.length === 0 && <p className="text-sm text-muted-foreground">No council sessions yet.</p>}
-          </div>
-        </Card>
-      </section>
     </div>
   );
 }

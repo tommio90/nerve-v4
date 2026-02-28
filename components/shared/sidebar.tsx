@@ -34,122 +34,141 @@ const ICONS = {
   MessageSquare,
 } as const;
 
-export function Sidebar() {
+function NavLink({
+  href,
+  icon,
+  label,
+  onClick,
+}: {
+  href: string;
+  icon: string;
+  label: string;
+  onClick?: () => void;
+}) {
   const pathname = usePathname();
+  const active = pathname === href;
+  const Icon = ICONS[icon as keyof typeof ICONS];
+
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition-all duration-200",
+        active
+          ? "border-violet/40 bg-violet/15 text-foreground"
+          : "border-transparent text-muted-foreground hover:border-white/10 hover:bg-white/5 hover:text-foreground",
+      )}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      <span>{label}</span>
+    </Link>
+  );
+}
+
+export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const sidebarContent = (onClose?: () => void) => (
+    <div className="flex h-full flex-col">
+      {/* Logo */}
+      <div className="flex items-center gap-2.5 px-4 py-5">
+        <img
+          src="/nerve-logo.jpg"
+          alt="NERVE"
+          className="h-7 w-7 rounded-full border border-white/20"
+        />
+        <span className="text-sm font-semibold tracking-wide">NERVE v4</span>
+      </div>
+
+      <div className="mx-3 mb-2 h-px bg-white/8" />
+
+      {/* Main nav */}
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-2">
+        {NAV_ITEMS.map((item) => (
+          <NavLink
+            key={item.href}
+            href={item.href}
+            icon={item.icon}
+            label={item.label}
+            onClick={onClose}
+          />
+        ))}
+
+        {/* Startup OS section */}
+        <div className="px-3 pb-1 pt-5">
+          <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground/60">
+            Startup OS
+          </span>
+        </div>
+        <div className="mx-0 mb-2 h-px bg-white/8" />
+
+        {STARTUP_OS_ITEMS.map((item) => (
+          <NavLink
+            key={item.href}
+            href={item.href}
+            icon={item.icon}
+            label={item.label}
+            onClick={onClose}
+          />
+        ))}
+      </nav>
+
+      {/* Bottom: Logout */}
+      <div className="mx-3 mb-2 h-px bg-white/8" />
+      <div className="px-3 pb-4">
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm text-muted-foreground transition-all duration-200 hover:border-white/10 hover:bg-white/5 hover:text-foreground"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <>
-      <header className="fixed left-1/2 top-3 z-50 flex w-[90%] max-w-[672px] -translate-x-1/2 items-center justify-between gap-1 rounded-full border border-white/10 bg-[rgba(10,10,10,0.7)] px-2 py-1.5 backdrop-blur-glass shadow-[0_16px_35px_-24px_rgba(139,92,246,0.85)] sm:top-4 sm:w-[95%] sm:gap-2 sm:px-3 sm:py-2">
-        <Link href="/" className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 py-1 sm:gap-2">
-          <img src="/nerve-logo.jpg" alt="NERVE" className="h-6 w-6 rounded-full border border-white/20 sm:h-7 sm:w-7" />
-          <span className="text-xs font-semibold tracking-[0.02em] sm:text-sm">NERVE v4</span>
+      {/* Desktop sidebar */}
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-56 border-r border-white/8 bg-[rgba(8,8,12,0.85)] backdrop-blur-xl md:flex md:flex-col">
+        {sidebarContent()}
+      </aside>
+
+      {/* Mobile top bar */}
+      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-white/8 bg-[rgba(8,8,12,0.85)] px-4 backdrop-blur-xl md:hidden">
+        <Link href="/" className="flex items-center gap-2">
+          <img
+            src="/nerve-logo.jpg"
+            alt="NERVE"
+            className="h-7 w-7 rounded-full border border-white/20"
+          />
+          <span className="text-sm font-semibold tracking-wide">NERVE v4</span>
         </Link>
-
-        <nav className="hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto px-1 md:flex">
-          {NAV_ITEMS.map((item) => {
-            const active = pathname === item.href;
-            const Icon = ICONS[item.icon as keyof typeof ICONS];
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs transition-all duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)]",
-                  active
-                    ? "border-violet/40 bg-violet/20 text-foreground"
-                    : "border-transparent text-muted-foreground hover:border-cyan/30 hover:bg-white/8 hover:text-foreground",
-                )}
-              >
-                <Icon className="h-3.5 w-3.5 shrink-0" />
-                {item.label}
-              </Link>
-            );
-          })}
-          <span className="mx-1 hidden h-6 w-px bg-white/10 md:inline-block" />
-          <span className="hidden text-[10px] uppercase tracking-[0.2em] text-muted-foreground md:inline-block">Startup OS</span>
-          {STARTUP_OS_ITEMS.map((item) => {
-            const active = pathname === item.href;
-            const Icon = ICONS[item.icon as keyof typeof ICONS];
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs transition-all duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)]",
-                  active
-                    ? "border-violet/40 bg-violet/20 text-foreground"
-                    : "border-transparent text-muted-foreground hover:border-cyan/30 hover:bg-white/8 hover:text-foreground",
-                )}
-              >
-                <Icon className="h-3.5 w-3.5 shrink-0" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="flex items-center gap-1">
-          <Button size="sm" variant="ghost" className="hidden min-h-11 min-w-11 md:inline-flex" onClick={() => signOut({ callbackUrl: "/login" })}>
-            <LogOut className="h-4 w-4" />
-          </Button>
-          <Button size="sm" variant="ghost" className="min-h-11 min-w-11 md:hidden" onClick={() => setMobileOpen((v) => !v)}>
-            {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </Button>
-        </div>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="min-h-10 min-w-10"
+          onClick={() => setMobileOpen((v) => !v)}
+        >
+          {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        </Button>
       </header>
 
-      {mobileOpen ? (
-        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setMobileOpen(false)}>
-          <nav className="glass-panel absolute left-1/2 top-20 w-[90%] max-w-sm -translate-x-1/2 space-y-1 rounded-3xl p-3 sm:top-24 sm:w-[92%]" onClick={(e) => e.stopPropagation()}>
-            {NAV_ITEMS.map((item) => {
-              const active = pathname === item.href;
-              const Icon = ICONS[item.icon as keyof typeof ICONS];
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    "flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-all duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)]",
-                    active
-                      ? "border-violet/40 bg-violet/20 text-foreground"
-                      : "border-transparent text-muted-foreground hover:border-cyan/30 hover:bg-white/8 hover:text-foreground",
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
-            <div className="pt-2 text-[10px] uppercase tracking-[0.24em] text-muted-foreground">Startup OS</div>
-            {STARTUP_OS_ITEMS.map((item) => {
-              const active = pathname === item.href;
-              const Icon = ICONS[item.icon as keyof typeof ICONS];
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    "flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-all duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)]",
-                    active
-                      ? "border-violet/40 bg-violet/20 text-foreground"
-                      : "border-transparent text-muted-foreground hover:border-cyan/30 hover:bg-white/8 hover:text-foreground",
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
-            <Button variant="outline" className="mt-2 min-h-11 w-full gap-2" onClick={() => signOut({ callbackUrl: "/login" })}>
-              <LogOut className="h-4 w-4" />
-              Logout
-            </Button>
-          </nav>
+      {/* Mobile drawer overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm md:hidden"
+          onClick={() => setMobileOpen(false)}
+        >
+          <aside
+            className="absolute inset-y-0 left-0 w-64 border-r border-white/8 bg-[rgba(8,8,12,0.95)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {sidebarContent(() => setMobileOpen(false))}
+          </aside>
         </div>
-      ) : null}
+      )}
     </>
   );
 }

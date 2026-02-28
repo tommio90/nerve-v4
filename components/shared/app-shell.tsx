@@ -14,7 +14,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <Sidebar />
-      <main className="min-h-screen w-full px-3 pb-8 pt-28 sm:px-4 sm:pt-32 md:px-6">{children}</main>
+      {/* Desktop: offset by sidebar width (w-56 = 224px). Mobile: offset by top bar height (h-14 = 56px). */}
+      <main className="min-h-screen w-full px-4 pb-10 pt-20 md:ml-56 md:px-8 md:pt-8">{children}</main>
     </div>
   );
 }

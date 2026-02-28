@@ -95,12 +95,8 @@ export function Sidebar() {
           />
         ))}
 
-        {/* Startup OS section */}
-        <div className="px-3 pb-1 pt-5">
-          <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground/60">
-            Startup OS
-          </span>
-        </div>
+        {/* Startup OS section divider */}
+        <div className="pt-3" />
         <div className="mx-0 mb-2 h-px bg-white/8" />
 
         {STARTUP_OS_ITEMS.map((item) => (

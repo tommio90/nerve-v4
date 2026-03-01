@@ -18,13 +18,13 @@ async function requireOwner() {
   return { session };
 }
 
-export async function PATCH(request: Request, context: { params: { id: string } }) {
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   const guard = await requireOwner();
   if ("error" in guard) return guard.error;
 
   try {
     const payload = roleSchema.parse(await request.json());
-    const { id } = context.params;
+    const { id } = await context.params;
 
     const user = await db.user.findUnique({ where: { id }, select: { role: true } });
     if (!user) {
@@ -49,11 +49,11 @@ export async function PATCH(request: Request, context: { params: { id: string } 
   }
 }
 
-export async function DELETE(_: Request, context: { params: { id: string } }) {
+export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
   const guard = await requireOwner();
   if ("error" in guard) return guard.error;
 
-  const { id } = context.params;
+  const { id } = await context.params;
   try {
     const user = await db.user.findUnique({ where: { id }, select: { role: true } });
     if (!user) {

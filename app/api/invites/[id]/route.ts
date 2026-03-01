@@ -13,11 +13,11 @@ async function requireOwner() {
   return { session };
 }
 
-export async function DELETE(_: Request, context: { params: { id: string } }) {
+export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
   const guard = await requireOwner();
   if ("error" in guard) return guard.error;
 
-  const { id } = context.params;
+  const { id } = await context.params;
   try {
     await db.invite.delete({ where: { id } });
     return NextResponse.json({ ok: true });

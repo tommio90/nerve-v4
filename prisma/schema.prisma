@@ -15,10 +15,15 @@ model User {
   emailVerified DateTime?
   image         String?
   passwordHash  String?
-  accounts      Account[]
-  sessions      Session[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  role          String    @default("MEMBER") // OWNER | MEMBER | VIEWER
+  accounts        Account[]
+  sessions        Session[]
+  invitesSent     Invite[]    @relation("InvitesSent")
+  createdProjects Project[]   @relation("ProjectCreatedBy")
+  createdTasks    Task[]      @relation("TaskCreatedBy")
+  createdDocs     Doc[]       @relation("DocCreatedBy")
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 }
 
 model Account {
@@ -78,6 +83,8 @@ model Project {
   whitepaperDocId   String?    // Link to auto-generated whitepaper doc
   contextSnapshotId String?
   contextSnapshot   ContextSnapshot? @relation(fields: [contextSnapshotId], references: [id], onDelete: SetNull)
+  createdById       String?
+  createdBy         User?      @relation("ProjectCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
   tasks             Task[]
@@ -86,6 +93,7 @@ model Project {
   @@index([status])
   @@index([contextSnapshotId])
   @@index([whitepaperDocId])
+  @@index([createdById])
 }
 
 model Task {
@@ -101,11 +109,14 @@ model Task {
   priority     Int            @default(3)
   executionLog ExecutionLog[]
   artifacts    Artifact[]
+  createdById  String?
+  createdBy    User?          @relation("TaskCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
   @@index([projectId])
   @@index([status])
+  @@index([createdById])
 }
 
 model ExecutionLog {
@@ -199,10 +210,29 @@ model Doc {
   source    String?
   tags      String       @default("[]") // JSON
   messages  DocMessage[]
+  createdById String?
+  createdBy   User?      @relation("DocCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
   @@index([createdAt])
+  @@index([createdById])
+}
+
+model Invite {
+  id          String    @id @default(cuid())
+  email       String
+  role        String    @default("MEMBER") // OWNER | MEMBER | VIEWER
+  token       String    @unique @default(cuid())
+  expiresAt   DateTime
+  usedAt      DateTime?
+  invitedById String
+  invitedBy   User      @relation("InvitesSent", fields: [invitedById], references: [id])
+  createdAt   DateTime  @default(now())
+
+  @@index([token])
+  @@index([email])
+  @@index([invitedById])
 }
 
 model DocMessage {

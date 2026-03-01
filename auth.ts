@@ -4,25 +4,16 @@ import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
-import crypto from "node:crypto";
 import { db } from "@/lib/db";
 import { authConfig } from "@/auth.config";
 
-const ADMIN_EMAIL = "gtomasello90@gmail.com";
-const ADMIN_PASSWORD = "nerve2026";
-
-function constantTimeEquals(a: string, b: string) {
-  const aBuffer = Buffer.from(a);
-  const bBuffer = Buffer.from(b);
-
-  if (aBuffer.length !== bBuffer.length) return false;
-  return crypto.timingSafeEqual(aBuffer, bBuffer);
-}
+const OWNER_EMAIL = "gtomasello90@gmail.com";
 
 declare module "next-auth" {
   interface Session {
     user: {
       id: string;
+      role: string;
     } & DefaultSession["user"];
   }
 }
@@ -38,40 +29,35 @@ const providers: Provider[] = [
       const email = String(credentials?.email ?? "").trim().toLowerCase();
       const password = String(credentials?.password ?? "");
 
-      if (!constantTimeEquals(email, ADMIN_EMAIL) || !constantTimeEquals(password, ADMIN_PASSWORD)) {
-        return null;
-      }
+      if (!email || !password) return null;
 
-      let admin = await db.user.findUnique({ where: { email: ADMIN_EMAIL } });
-      if (!admin) {
-        admin = await db.user.create({
+      let user = await db.user.findUnique({ where: { email } });
+
+      if (!user && email === OWNER_EMAIL) {
+        user = await db.user.create({
           data: {
-            email: ADMIN_EMAIL,
-            name: "Giuseppe Tomasello",
-            passwordHash: await bcrypt.hash(ADMIN_PASSWORD, 12),
+            email,
+            passwordHash: await bcrypt.hash(password, 12),
+            role: "OWNER",
           },
         });
-      } else if (!admin.passwordHash) {
-        admin = await db.user.update({
-          where: { id: admin.id },
-          data: { passwordHash: await bcrypt.hash(ADMIN_PASSWORD, 12) },
-        });
       }
 
-      if (!admin.passwordHash) {
+      if (!user?.passwordHash) {
         return null;
       }
 
-      const validPassword = await bcrypt.compare(password, admin.passwordHash);
+      const validPassword = await bcrypt.compare(password, user.passwordHash);
       if (!validPassword) {
         return null;
       }
 
       return {
-        id: admin.id,
-        name: admin.name,
-        email: admin.email,
-        image: admin.image,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        role: user.role,
       };
     },
   }),
@@ -96,14 +82,31 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     ...authConfig.callbacks,
     signIn: async ({ user }) => {
       const email = user.email?.toLowerCase();
-      return email === ADMIN_EMAIL;
+      if (!email) return false;
+      const existing = await db.user.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          passwordHash: true,
+          accounts: { select: { provider: true }, take: 1 },
+        },
+      });
+      if (!existing) return false;
+      return Boolean(existing.passwordHash || existing.accounts.length > 0);
     },
     jwt: async ({ token, user }) => {
-      if (user?.id) token.sub = user.id;
+      if (user?.id) {
+        token.sub = user.id;
+        token.role = (user as { role?: string }).role;
+      } else if (token.sub && !token.role) {
+        const existing = await db.user.findUnique({ where: { id: token.sub }, select: { role: true } });
+        token.role = existing?.role;
+      }
       return token;
     },
     session: async ({ session, token }) => {
       if (token.sub) session.user.id = token.sub;
+      if (token.role) session.user.role = token.role as string;
       return session;
     },
   },

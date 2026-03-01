@@ -6,8 +6,9 @@ import { Sidebar } from "@/components/shared/sidebar";
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLogin = pathname === "/login";
+  const isInvite = pathname.startsWith("/invite");
 
-  if (isLogin) {
+  if (isLogin || isInvite) {
     return <>{children}</>;
   }
 

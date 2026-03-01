@@ -10,6 +10,7 @@ export const NAV_ITEMS = [
   { href: "/knowledge", label: "Knowledge", icon: "BookOpen" },
   { href: "/preferences", label: "Preferences", icon: "Settings2" },
   { href: "/calls", label: "Calls", icon: "Phone" },
+  { href: "/settings/team", label: "Team", icon: "Users" },
   { href: "/settings", label: "Settings", icon: "Cog" },
 ];
 

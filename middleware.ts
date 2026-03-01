@@ -6,6 +6,13 @@ import type { NextRequest } from "next/server";
 const { auth } = NextAuth(authConfig);
 
 export default auth((request) => {
+  const isPublicRoute =
+    request.nextUrl.pathname.startsWith("/invite") || request.nextUrl.pathname === "/login";
+
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
+
   // API key bypass for automated access (cron jobs, scripts)
   const apiKey = request.nextUrl.searchParams.get("api_key");
   const validApiKey = process.env.NERVE_API_KEY;

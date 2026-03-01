@@ -5,6 +5,7 @@ export const NAV_ITEMS = [
 ];
 
 export const STARTUP_OS_ITEMS = [
+  { href: "/org", label: "Org Chart", icon: "GitBranch" },
   { href: "/okrs", label: "OKRs", icon: "Target" },
   { href: "/assumptions", label: "Assumptions", icon: "FlaskConical" },
   { href: "/agents", label: "Agents", icon: "Bot" },

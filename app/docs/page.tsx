@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Plus, Save, Sparkles, Trash2 } from "lucide-react";
+import { Check, Copy, Link2, Pencil, Plus, Save, Search, Sparkles, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DocForm } from "@/components/docs/doc-form";
 import { DocChat } from "@/components/docs/doc-chat";
@@ -20,7 +20,7 @@ type DocMeta = {
   createdAt: string;
 };
 
-type DocFull = DocMeta & { content: string };
+type DocFull = DocMeta & { content: string; shareToken: string | null; isPublic: boolean };
 
 const CATEGORY_ICONS: Record<string, string> = {
   strategy: "🎯",
@@ -117,6 +117,7 @@ export default function DocsPage() {
       const doc = (typeof data === "object" && data && "doc" in data ? data.doc : data) as DocFull | undefined;
       if (!doc) return;
       setSelectedDoc(doc);
+      setShareUrl(doc.isPublic && doc.shareToken ? `${window.location.origin}/share/${doc.shareToken}` : null);
     } catch { /* */ }
     setLoadingDoc(false);
   };
@@ -171,7 +172,53 @@ export default function DocsPage() {
   const [deleting, setDeleting] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "title" | "tag-relevance">("newest");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<DocMeta[] | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) { setSearchResults(null); return; }
+    const t = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}&limit=20`);
+        const data = (await res.json()) as { results: { id: string; title: string; summary: string | null; venture: string | null; tags: string; score: number }[] };
+        setSearchResults(data.results.map(r => ({ id: r.id, title: r.title, summary: r.summary, venture: r.venture, tags: r.tags, category: null, source: null, createdAt: "" })));
+      } catch { setSearchResults([]); }
+      finally { setSearchLoading(false); }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
   const editorRef = useRef<HTMLTextAreaElement>(null);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [shareLoading, setShareLoading] = useState(false);
+
+  const toggleShare = async (enable: boolean) => {
+    if (!selectedDoc) return;
+    setShareLoading(true);
+    try {
+      const res = await fetch(`/api/docs/${selectedDoc.id}/share`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enable }),
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as { shareUrl: string | null; isPublic: boolean };
+      const token = data.shareUrl ? data.shareUrl.split("/share/")[1] ?? null : null;
+      setSelectedDoc((prev) => prev ? { ...prev, isPublic: data.isPublic, shareToken: token } : prev);
+      setShareUrl(enable ? data.shareUrl : null);
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
+  const copyShareUrl = async () => {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+    } catch { /* ignore */ }
+  };
 
   const allTags = useMemo(() => {
     const unique = new Set<string>();
@@ -303,7 +350,7 @@ export default function DocsPage() {
               </span>
             ))}
             <span className="text-xs text-muted-foreground">{formatDate(selectedDoc.createdAt)}</span>
-            <div className="ml-auto flex gap-2">
+            <div className="flex w-full flex-wrap justify-end gap-1.5">
               <button
                 onClick={() => {
                   if (editMode) {
@@ -327,6 +374,15 @@ export default function DocsPage() {
                 <Trash2 className="h-3 w-3" /> Delete
               </button>
               <button
+                onClick={() => void toggleShare(!selectedDoc.isPublic)}
+                disabled={shareLoading}
+                className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan disabled:opacity-60 ${
+                  selectedDoc.isPublic ? "bg-emerald-600 text-white hover:bg-emerald-500" : "bg-black/40 text-slate-300 hover:bg-black/60"
+                }`}
+              >
+                {selectedDoc.isPublic ? <><Check className="h-3 w-3" /> Shared</> : <><Link2 className="h-3 w-3" /> Share</>}
+              </button>
+              <button
                 onClick={() => setShowImageGen(!showImageGen)}
                 className="rounded-lg bg-black/40 px-4 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-black/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan"
               >
@@ -341,6 +397,20 @@ export default function DocsPage() {
               </button>
             </div>
           </div>
+
+          {/* Share URL Banner */}
+          {selectedDoc.isPublic && shareUrl && (
+            <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100">
+              <span className="text-emerald-200">Public link:</span>
+              <span className="truncate font-mono text-emerald-100">{shareUrl}</span>
+              <button
+                onClick={() => void copyShareUrl()}
+                className="ml-auto inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-1 text-[11px] font-semibold text-white transition hover:bg-emerald-500"
+              >
+                <Copy className="h-3 w-3" /> Copy
+              </button>
+            </div>
+          )}
 
           {/* Image Generator */}
           {showImageGen && (
@@ -470,6 +540,24 @@ export default function DocsPage() {
         />
       </div>
 
+      {/* Semantic Search Bar */}
+      <div className="relative flex items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-3 py-2 focus-within:border-cyan/40 transition-colors">
+        <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search docs semantically…"
+          className="flex-1 bg-transparent text-sm text-slate-200 outline-none placeholder:text-muted-foreground"
+        />
+        {searchLoading && <div className="h-3 w-3 animate-spin rounded-full border-2 border-cyan border-t-transparent" />}
+        {searchQuery && !searchLoading && (
+          <button onClick={() => setSearchQuery("")} className="text-muted-foreground hover:text-white transition-colors">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-white/10 bg-black/40 p-3">
         <span className="text-xs font-semibold text-muted-foreground">Sort</span>
         <select
@@ -525,16 +613,18 @@ export default function DocsPage() {
             </div>
           ))}
         </div>
-      ) : filteredDocs.length === 0 ? (
+      ) : (searchResults ?? filteredDocs).length === 0 ? (
         <div className="rounded-2xl border border-white/10 bg-black/40 p-8 text-center">
           <div className="mx-auto mb-3 w-fit rounded-full border border-violet/30 bg-violet/10 p-3">
             <Sparkles className="h-6 w-6 text-cyan" />
           </div>
-          <p className="text-sm text-muted-foreground">{docs.length === 0 ? "No docs yet — create your first one." : "No docs match the selected tags."}</p>
+          <p className="text-sm text-muted-foreground">
+            {searchQuery ? "No docs matched your search." : docs.length === 0 ? "No docs yet — create your first one." : "No docs match the selected tags."}
+          </p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {filteredDocs.map((doc) => (
+          {(searchResults ?? filteredDocs).map((doc) => (
             <button
               key={doc.id}
               onClick={() => void openDoc(doc.id)}

@@ -198,6 +198,9 @@ model Doc {
   venture   String?
   source    String?
   tags      String       @default("[]") // JSON
+  embedding String?      // JSON array of floats (text-embedding-3-small, 1536 dims)
+  shareToken String?     @unique
+  isPublic   Boolean     @default(false)
   messages  DocMessage[]
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
@@ -324,6 +327,25 @@ model AgentNode {
 
   @@index([role])
   @@index([status])
+}
+
+model OrgMember {
+  id         String   @id @default(cuid())
+  name       String
+  role       String
+  department String?
+  type       String   @default("human")  // "human" | "agent"
+  avatar     String?
+  initials   String?
+  status     String   @default("active") // "active" | "away" | "offline"
+  parentId   String?
+  metadata   String   @default("{}") // JSON: model, capabilities, bio, etc.
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([parentId])
+  @@index([department])
+  @@index([type])
 }
 
 model Persona {

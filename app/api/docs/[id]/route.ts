@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, ok } from "@/lib/api";
 import { db } from "@/lib/db";
 import { buildDocTags, parseTags, serializeTags } from "@/lib/doc-tags";
+import { embedText } from "@/lib/embeddings";
 
 const updateSchema = z.object({
   title: z.string().min(1).optional(),
@@ -12,6 +13,25 @@ const updateSchema = z.object({
   source: z.string().optional(),
   tags: z.array(z.string()).optional(),
 });
+
+function buildEmbeddingInput(doc: { title: string; summary: string | null; content: string }) {
+  return [doc.title, doc.summary, doc.content].filter(Boolean).join(" ").slice(0, 8000);
+}
+
+async function embedAndSave(id: string) {
+  try {
+    const doc = await db.doc.findUnique({
+      where: { id },
+      select: { id: true, title: true, summary: true, content: true },
+    });
+    if (!doc) return;
+    const input = buildEmbeddingInput(doc);
+    const embedding = await embedText(input);
+    await db.doc.update({ where: { id }, data: { embedding: JSON.stringify(embedding) } });
+  } catch {
+    return;
+  }
+}
 
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
@@ -59,6 +79,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
         tags: serializeTags(tags),
       },
     });
+    void embedAndSave(id);
     return ok({ doc });
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -10,10 +10,12 @@ import {
   FileText,
   FlaskConical,
   FolderKanban,
+  GitBranch,
   LayoutDashboard,
   LogOut,
   Menu,
   MessageSquare,
+  Search,
   Target,
   Users,
   X,
@@ -27,6 +29,7 @@ import { useSidebar } from "@/components/shared/sidebar-context";
 
 const ICONS = {
   Bot,
+  GitBranch,
   LayoutDashboard,
   FolderKanban,
   FileText,
@@ -73,7 +76,7 @@ function NavLink({
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ onOpenSearch }: { onOpenSearch?: () => void } = {}) {
   const { collapsed, toggle } = useSidebar();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -186,14 +189,27 @@ export function Sidebar() {
           />
           <span className="text-sm font-semibold tracking-wide">NERVE v4</span>
         </Link>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="min-h-10 min-w-10"
-          onClick={() => setMobileOpen((v) => !v)}
-        >
-          {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-        </Button>
+        <div className="flex items-center gap-1">
+          {onOpenSearch && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="min-h-10 min-w-10"
+              onClick={onOpenSearch}
+              aria-label="Search"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="min-h-10 min-w-10"
+            onClick={() => setMobileOpen((v) => !v)}
+          >
+            {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </Button>
+        </div>
       </header>
 
       {/* Mobile drawer */}

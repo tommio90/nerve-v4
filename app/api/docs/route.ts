@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, ok } from "@/lib/api";
 import { db } from "@/lib/db";
 import { buildDocTags, serializeTags } from "@/lib/doc-tags";
+import { embedText } from "@/lib/embeddings";
 
 const docSchema = z.object({
   title: z.string().min(1),
@@ -13,6 +14,25 @@ const docSchema = z.object({
   tags: z.array(z.string()).optional(),
   createdAt: z.string().datetime().optional(),
 });
+
+function buildEmbeddingInput(doc: { title: string; summary: string | null; content: string }) {
+  return [doc.title, doc.summary, doc.content].filter(Boolean).join(" ").slice(0, 8000);
+}
+
+async function embedAndSave(id: string) {
+  try {
+    const doc = await db.doc.findUnique({
+      where: { id },
+      select: { id: true, title: true, summary: true, content: true },
+    });
+    if (!doc) return;
+    const input = buildEmbeddingInput(doc);
+    const embedding = await embedText(input);
+    await db.doc.update({ where: { id }, data: { embedding: JSON.stringify(embedding) } });
+  } catch {
+    return;
+  }
+}
 
 export async function GET() {
   try {
@@ -41,6 +61,7 @@ export async function POST(request: Request) {
         tags: serializeTags(tags),
       },
     });
+    void embedAndSave(doc.id);
     return ok({ doc }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {

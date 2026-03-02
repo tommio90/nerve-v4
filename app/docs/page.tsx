@@ -171,6 +171,7 @@ export default function DocsPage() {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagsExpanded, setTagsExpanded] = useState(false);
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "title" | "tag-relevance">("newest");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<DocMeta[] | null>(null);
@@ -558,49 +559,94 @@ export default function DocsPage() {
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-white/10 bg-black/40 p-3">
-        <span className="text-xs font-semibold text-muted-foreground">Sort</span>
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-          className="rounded-md border border-white/10 bg-black/40 px-2 py-1 text-xs text-slate-300"
-        >
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-          <option value="title">Title</option>
-          <option value="tag-relevance">Tag Relevance</option>
-        </select>
-        <span className="ml-2 text-xs font-semibold text-muted-foreground">Tags</span>
-        {allTags.length === 0 ? (
-          <span className="text-xs text-muted-foreground">No tags yet</span>
-        ) : (
-          allTags.map((tag) => {
-            const active = selectedTags.includes(tag);
-            return (
-              <button
-                key={tag}
-                onClick={() =>
-                  setSelectedTags((prev) =>
-                    prev.includes(tag) ? prev.filter((entry) => entry !== tag) : [...prev, tag],
-                  )
-                }
-                className={`rounded-full px-2.5 py-1 text-xs transition ${
-                  active ? "bg-cyan/20 text-cyan border border-cyan/30" : "bg-black/40 text-muted-foreground border border-white/10"
-                }`}
-              >
-                #{tag}
-              </button>
-            );
-          })
-        )}
-        {selectedTags.length > 0 ? (
-          <button
-            onClick={() => setSelectedTags([])}
-            className="ml-auto rounded-md border border-white/10 bg-black/40 px-2 py-1 text-xs text-muted-foreground"
+      {/* Sort + Tags filter bar */}
+      <div className="rounded-xl border border-white/10 bg-black/40 overflow-hidden">
+        {/* Header row — always visible */}
+        <div className="flex flex-wrap items-center gap-2 px-3 py-2.5">
+          <span className="text-xs font-semibold text-muted-foreground">Sort</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+            className="rounded-md border border-white/10 bg-black/60 px-2 py-1 text-xs text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan/40"
           >
-            Clear
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="title">Title</option>
+            <option value="tag-relevance">Tag Relevance</option>
+          </select>
+
+          <div className="mx-1 h-3.5 w-px bg-white/10" />
+
+          {/* Tags toggle button */}
+          <button
+            onClick={() => setTagsExpanded((v) => !v)}
+            className="flex items-center gap-1.5 rounded-md border border-white/10 bg-black/40 px-2.5 py-1 text-xs text-slate-300 transition hover:border-cyan/30 hover:text-cyan focus:outline-none"
+          >
+            <span className="font-semibold">Tags</span>
+            {allTags.length > 0 && (
+              <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                {allTags.length}
+              </span>
+            )}
+            <span className={`text-[10px] transition-transform duration-200 ${tagsExpanded ? "rotate-180" : ""}`}>▼</span>
           </button>
-        ) : null}
+
+          {/* Active tag pills — shown even when collapsed */}
+          {selectedTags.length > 0 && (
+            <>
+              <div className="flex flex-wrap gap-1.5">
+                {selectedTags.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => setSelectedTags((prev) => prev.filter((t) => t !== tag))}
+                    className="flex items-center gap-1 rounded-full border border-cyan/30 bg-cyan/15 px-2.5 py-0.5 text-xs text-cyan transition hover:bg-cyan/25"
+                  >
+                    #{tag}
+                    <X className="h-2.5 w-2.5 opacity-60" />
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setSelectedTags([])}
+                className="ml-auto rounded-md border border-white/10 bg-black/40 px-2 py-1 text-xs text-muted-foreground transition hover:text-slate-300"
+              >
+                Clear all
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Expandable tags panel */}
+        <div className={`transition-all duration-300 ${tagsExpanded ? "max-h-64 opacity-100" : "max-h-0 opacity-0"} overflow-hidden`}>
+          <div className="border-t border-white/10 px-3 py-3">
+            {allTags.length === 0 ? (
+              <span className="text-xs text-muted-foreground">No tags yet</span>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {allTags.map((tag) => {
+                  const active = selectedTags.includes(tag);
+                  return (
+                    <button
+                      key={tag}
+                      onClick={() =>
+                        setSelectedTags((prev) =>
+                          prev.includes(tag) ? prev.filter((entry) => entry !== tag) : [...prev, tag],
+                        )
+                      }
+                      className={`rounded-full border px-2.5 py-1 text-xs transition ${
+                        active
+                          ? "border-cyan/30 bg-cyan/20 text-cyan"
+                          : "border-white/10 bg-black/40 text-muted-foreground hover:border-white/20 hover:text-slate-300"
+                      }`}
+                    >
+                      #{tag}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {loading ? (

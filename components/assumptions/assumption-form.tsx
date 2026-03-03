@@ -27,7 +27,7 @@ export function AssumptionForm({ onCreated }: { onCreated: () => void }) {
     <div className="space-y-3">
       <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Assumption title" />
       <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Assumption description" />
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="flex items-center gap-2 text-caption">
         <span>Risk Level</span>
         <input
           type="range"

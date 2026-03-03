@@ -4,7 +4,7 @@ import { fail, ok } from "@/lib/api";
 import { db } from "@/lib/db";
 import { buildDocTags, serializeTags } from "@/lib/doc-tags";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getClient() { return new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); }
 
 const requestSchema = z.object({
   prompt: z.string().min(8).max(8000),
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
     const { prompt, title } = parsed.data;
 
-    const completion = await client.chat.completions.create({
+    const completion = await getClient().chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {

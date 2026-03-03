@@ -1,7 +1,8 @@
 import { ShieldCheck } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { loginWithCredentials, loginWithGoogle } from "@/app/login/actions";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -22,60 +23,64 @@ export default async function LoginPage({
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(139,92,246,0.26),transparent_40%),radial-gradient(circle_at_90%_100%,rgba(6,182,212,0.2),transparent_42%)]" />
-      <Card className="relative z-10 w-full max-w-md border-white/10 bg-[rgba(10,10,10,0.72)] p-7 backdrop-blur-glass">
-        <div className="mb-5 flex items-center gap-3">
-          <div className="rounded-xl border border-violet/35 bg-violet/15 p-2">
-            <ShieldCheck className="h-5 w-5 text-violet" />
+      <Card className="relative z-10 w-full max-w-md border-border bg-popover p-0 backdrop-blur-glass">
+        <CardHeader className="px-7 pt-7 pb-5">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl border border-violet/35 bg-violet/15 p-2">
+              <ShieldCheck className="h-5 w-5 text-violet" />
+            </div>
+            <div>
+              <CardTitle className="text-xl tracking-[-0.02em]">NERVE v4</CardTitle>
+              <CardDescription className="text-xs">Sign in to continue</CardDescription>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-semibold tracking-[-0.02em] text-foreground">NERVE v4</h1>
-            <p className="text-xs text-muted-foreground">Sign in to continue</p>
-          </div>
-        </div>
+        </CardHeader>
 
-        <form action={loginWithCredentials} className="space-y-3">
-          <div className="space-y-1">
-            <label htmlFor="email" className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
-              Email
-            </label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              required
-              autoComplete="email"
-              placeholder="gtomasello90@gmail.com"
-            />
-          </div>
+        <CardContent className="px-7 pb-7">
+          <form action={loginWithCredentials} className="space-y-3">
+            <div className="space-y-1">
+              <Label htmlFor="email" className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                Email
+              </Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                required
+                autoComplete="email"
+                placeholder="gtomasello90@gmail.com"
+              />
+            </div>
 
-          <div className="space-y-1">
-            <label htmlFor="password" className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
-              Password
-            </label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              placeholder="Enter password"
-            />
-          </div>
+            <div className="space-y-1">
+              <Label htmlFor="password" className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                Password
+              </Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                required
+                autoComplete="current-password"
+                placeholder="Enter password"
+              />
+            </div>
 
-          {errorMessage ? <p className="text-xs text-red-300">{errorMessage}</p> : null}
+            {errorMessage ? <p className="text-xs text-red-300">{errorMessage}</p> : null}
 
-          <Button type="submit" className="h-10 w-full">
-            Sign In
-          </Button>
-        </form>
-
-        {googleEnabled ? (
-          <form action={loginWithGoogle} className="mt-3">
-            <Button type="submit" variant="outline" className="h-10 w-full">
-              Continue with Google
+            <Button type="submit" className="h-10 w-full">
+              Sign In
             </Button>
           </form>
-        ) : null}
+
+          {googleEnabled ? (
+            <form action={loginWithGoogle} className="mt-3">
+              <Button type="submit" variant="outline" className="h-10 w-full">
+                Continue with Google
+              </Button>
+            </form>
+          ) : null}
+        </CardContent>
       </Card>
     </main>
   );

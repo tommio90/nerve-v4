@@ -27,7 +27,7 @@ function badgeStyle(status: string) {
   if (normalized.includes("DEFER")) {
     return "border border-amber-500/40 bg-amber-500/15 text-amber-300";
   }
-  return "border border-white/20 bg-white/5 text-slate-300";
+  return "border border-border bg-surface text-slate-300";
 }
 
 function statusLabel(status: string) {
@@ -121,7 +121,7 @@ export function TaskApprovalCard({ taskId, initialStatus }: TaskApprovalCardProp
           {!showFeedback ? (
             <button
               onClick={() => setShowFeedback(true)}
-              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-2 text-xs text-muted-foreground transition hover:border-cyan/30 hover:text-foreground"
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-2 text-caption transition hover:border-ring hover:text-foreground"
             >
               <MessageSquare className="h-3 w-3" />
               Add feedback

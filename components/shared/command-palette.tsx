@@ -108,13 +108,13 @@ export function CommandPalette({ open, onClose, onSelectDoc }: CommandPalettePro
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] bg-surface-deep backdrop-blur-sm" onClick={onClose}>
       <div
-        className="fixed left-1/2 top-[20%] w-full max-w-xl -translate-x-1/2 rounded-2xl border border-white/10 bg-[rgba(8,8,12,0.95)] shadow-2xl"
+        className="fixed left-1/2 top-[20%] w-full max-w-xl -translate-x-1/2 rounded-2xl border border-border bg-popover shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
-          <span className="text-xs text-muted-foreground">Search</span>
+        <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+          <span className="text-caption">Search</span>
           <input
             ref={inputRef}
             value={query}
@@ -122,22 +122,22 @@ export function CommandPalette({ open, onClose, onSelectDoc }: CommandPalettePro
             placeholder="Search docs..."
             className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
-          <span className="text-xs text-muted-foreground">Cmd+K</span>
+          <span className="text-caption">Cmd+K</span>
         </div>
         <div className="max-h-[420px] overflow-y-auto px-2 pb-2 pt-2">
           {!query.trim() && !loading && (
-            <div className="px-3 py-6 text-xs text-muted-foreground">
+            <div className="px-3 py-6 text-caption">
               Type to search across all docs semantically
             </div>
           )}
           {loading && showSpinner && (
-            <div className="flex items-center gap-2 px-3 py-4 text-xs text-muted-foreground">
-              <span className="h-4 w-4 animate-spin rounded-full border border-white/30 border-t-white" />
+            <div className="flex items-center gap-2 px-3 py-4 text-caption">
+              <span className="h-4 w-4 animate-spin rounded-full border border-border border-t-white" />
               Searching...
             </div>
           )}
           {!loading && query.trim() && results.length === 0 && (
-            <div className="px-3 py-6 text-xs text-muted-foreground">No results</div>
+            <div className="px-3 py-6 text-caption">No results</div>
           )}
           {results.map((result, index) => {
             const selected = index === selectedIndex;
@@ -150,17 +150,17 @@ export function CommandPalette({ open, onClose, onSelectDoc }: CommandPalettePro
                   onClose();
                 }}
                 className={
-                  "w-full rounded-lg px-3 py-3 text-left transition hover:bg-white/5 " +
-                  (selected ? "bg-white/5" : "")
+                  "w-full rounded-lg px-3 py-3 text-left transition hover:bg-surface-hover " +
+                  (selected ? "bg-surface" : "")
                 }
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">&gt;</span>
+                  <span className="text-caption">&gt;</span>
                   <span className="text-sm text-foreground">{result.title}</span>
                 </div>
-                <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="mt-1 flex items-center gap-2 text-caption">
                   {result.venture && (
-                    <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide">
+                    <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide">
                       {result.venture}
                     </span>
                   )}

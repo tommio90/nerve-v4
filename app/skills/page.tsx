@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Activity,
   Bot,
@@ -38,16 +39,16 @@ const typeIcons: Record<string, typeof Wand> = {
   integration: Activity,
 };
 
-const typeColors: Record<string, string> = {
-  workflow: "bg-cyan/12 text-cyan border-cyan/35",
-  automation: "bg-amber-500/10 text-amber-300 border-amber-400/30",
-  integration: "bg-emerald/12 text-emerald border-emerald/35",
+const typeVariants: Record<string, BadgeProps["variant"]> = {
+  workflow: "proposed",
+  automation: "active",
+  integration: "complete",
 };
 
-const statusColors: Record<string, string> = {
-  active: "bg-emerald/12 text-emerald border-emerald/35",
-  disabled: "bg-white/8 text-slate-300 border-white/20",
-  draft: "bg-amber-500/10 text-amber-300 border-amber-400/30",
+const skillStatusVariants: Record<string, BadgeProps["variant"]> = {
+  active: "complete",
+  disabled: "deferred",
+  draft: "active",
 };
 
 const skillIcons: Record<string, typeof Wand> = {
@@ -107,8 +108,8 @@ export default function SkillsPage() {
   return (
     <div className="synapse-page animate-fade-in space-y-6">
       <div>
-        <h1 className="synapse-heading">Skills</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="title-3">Skills</h1>
+        <p className="text-subtle">
           Reusable agent workflows — each skill encodes a repeatable procedure with specific models and perspectives.
         </p>
       </div>
@@ -118,23 +119,23 @@ export default function SkillsPage() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Card className="p-3 text-center">
             <div className="text-2xl font-bold text-cyan">{skills.length}</div>
-            <div className="text-xs text-muted-foreground">Total Skills</div>
+            <div className="text-caption">Total Skills</div>
           </Card>
           <Card className="p-3 text-center">
             <div className="text-2xl font-bold text-emerald-400">{skills.filter((s) => s.status === "active").length}</div>
-            <div className="text-xs text-muted-foreground">Active</div>
+            <div className="text-caption">Active</div>
           </Card>
           <Card className="p-3 text-center">
             <div className="text-2xl font-bold text-amber-400">
               {new Set(skills.flatMap((s) => parseModels(s.models))).size}
             </div>
-            <div className="text-xs text-muted-foreground">Models Used</div>
+            <div className="text-caption">Models Used</div>
           </Card>
           <Card className="p-3 text-center">
             <div className="text-2xl font-bold text-cyan-400">
               {skills.reduce((acc, s) => acc + s.runCount, 0)}
             </div>
-            <div className="text-xs text-muted-foreground">Total Runs</div>
+            <div className="text-caption">Total Runs</div>
           </Card>
         </div>
       )}
@@ -143,10 +144,10 @@ export default function SkillsPage() {
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="animate-pulse space-y-3 p-5">
-              <div className="h-5 w-2/5 rounded-full bg-muted/50" />
-              <div className="h-3 w-4/5 rounded-full bg-muted/40" />
-              <div className="h-3 w-3/5 rounded-full bg-muted/30" />
+            <Card key={i} className="space-y-3 p-5">
+              <Skeleton className="h-5 w-2/5 rounded-full" />
+              <Skeleton className="h-3 w-4/5 rounded-full" />
+              <Skeleton className="h-3 w-3/5 rounded-full" />
             </Card>
           ))}
         </div>
@@ -161,61 +162,58 @@ export default function SkillsPage() {
             return (
               <Card
                 key={skill.id}
-              className="group relative overflow-hidden transition-all duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] hover:border-violet/40 hover:shadow-violet-glow"
+                className="group relative overflow-hidden p-0 transition-all duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] hover:border-ring hover:shadow-glow"
               >
                 {/* Top accent */}
                 <div className="h-0.5 w-full bg-gradient-to-r from-violet/60 via-cyan/50 to-transparent" />
 
-                <div className="space-y-4 p-5">
-                  {/* Header */}
+                <CardHeader className="p-5 pb-0">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div className="rounded-lg border border-violet/20 bg-violet/10 p-2">
                         <SkillIcon className="h-5 w-5 text-violet" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-semibold tracking-tight">{skill.name}</h3>
+                        <CardTitle>{skill.name}</CardTitle>
                         <div className="mt-0.5 flex items-center gap-2">
-                          <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${typeColors[skill.type] || typeColors.workflow}`}>
+                          <Badge variant={typeVariants[skill.type] || "proposed"} className="gap-1 text-[10px]">
                             <TypeIcon className="h-3 w-3" />
                             {skill.type}
-                          </span>
-                          <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${statusColors[skill.status]}`}>
+                          </Badge>
+                          <Badge variant={skillStatusVariants[skill.status] || "default"} className="gap-1 text-[10px]">
                             <CircleDot className="h-2.5 w-2.5" />
                             {skill.status}
-                          </span>
+                          </Badge>
                         </div>
                       </div>
                     </div>
                   </div>
+                </CardHeader>
 
-                  {/* Description */}
+                <CardContent className="space-y-4 px-5 pt-4">
                   <p className="text-sm leading-relaxed text-muted-foreground">
                     {skill.description}
                   </p>
 
-                  {/* Models */}
                   {models.length > 0 && (
                     <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1.5 text-caption">
                         <Bot className="h-3.5 w-3.5" />
                         <span>Models</span>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {models.map((m) => (
-                          <span
-                            key={m}
-                            className="inline-flex items-center rounded-md border border-white/15 bg-white/5 px-2 py-0.5 text-[11px] font-mono text-slate-300"
-                          >
+                          <Badge key={m} variant="default" className="font-mono text-[11px] text-slate-300">
                             {formatModelName(m)}
-                          </span>
+                          </Badge>
                         ))}
                       </div>
                     </div>
                   )}
+                </CardContent>
 
-                  {/* Footer */}
-                  <div className="flex items-center justify-between border-t border-white/10 pt-3 text-xs text-muted-foreground">
+                <CardFooter className="border-t border-border px-5 py-3 text-caption">
+                  <div className="flex w-full items-center justify-between">
                     <div className="flex items-center gap-3">
                       {config.schedule && (
                         <span className="flex items-center gap-1">
@@ -235,7 +233,7 @@ export default function SkillsPage() {
                       {skill.lastRunAt ? formatRelative(skill.lastRunAt) : "Never run"}
                     </span>
                   </div>
-                </div>
+                </CardFooter>
               </Card>
             );
           })}
@@ -245,7 +243,7 @@ export default function SkillsPage() {
               <div className="rounded-full border border-violet/30 bg-violet/10 p-3">
                 <Sparkles className="h-6 w-6 text-violet" />
               </div>
-              <p className="text-sm text-muted-foreground">No skills configured yet.</p>
+              <p className="text-subtle">No skills configured yet.</p>
             </Card>
           )}
         </div>

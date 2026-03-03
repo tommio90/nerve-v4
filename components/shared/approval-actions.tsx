@@ -71,7 +71,7 @@ export function ApprovalActions({ entityType, entityId }: ApprovalActionsProps) 
       {!showFeedback ? (
         <button
           onClick={() => setShowFeedback(true)}
-          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-2 text-xs text-muted-foreground transition hover:border-cyan/30 hover:text-foreground"
+          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-2 text-caption transition hover:border-ring hover:text-foreground"
         >
           <MessageSquare className="h-3 w-3" />
           Add feedback

@@ -2,7 +2,7 @@ import { fail, ok } from "@/lib/api";
 import { db } from "@/lib/db";
 import OpenAI from "openai";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getClient() { return new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); }
 
 export async function POST() {
   try {
@@ -50,7 +50,7 @@ Respond with ONLY a JSON object in this exact format (no markdown, no explanatio
   "reasoning": "1-2 sentences explaining why this project aligns with the thesis and builds on recent work"
 }`;
 
-    const response = await client.chat.completions.create({
+    const response = await getClient().chat.completions.create({
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },
       messages: [

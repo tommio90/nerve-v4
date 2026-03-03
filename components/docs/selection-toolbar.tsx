@@ -74,7 +74,7 @@ export function SelectionToolbar({ containerRef, onAction }: Props) {
   return (
     <div
       ref={toolbarRef}
-      className="absolute z-40 flex items-center gap-0.5 rounded-lg border border-white/10 bg-black/40 p-1 shadow-xl shadow-black/30"
+      className="absolute z-40 flex items-center gap-0.5 rounded-lg border border-border bg-surface-deep p-1 shadow-xl shadow-surface-deep/30"
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,

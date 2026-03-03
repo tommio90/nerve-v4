@@ -154,7 +154,7 @@ export function DocForm({ onCreated }: { onCreated?: () => void | Promise<void> 
 
   return (
     <div className="glass-panel grid gap-3 rounded-xl p-4">
-      <div className="grid grid-cols-3 gap-1 rounded-xl border border-white/10 bg-black/30 p-1">
+      <div className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-surface-deep p-1">
         {TABS.map((tab) => (
           <button
             key={tab.key}
@@ -166,8 +166,8 @@ export function DocForm({ onCreated }: { onCreated?: () => void | Promise<void> 
             className={cn(
               "rounded-lg px-3 py-2 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan",
               activeTab === tab.key
-                ? "bg-gradient-to-r from-violet/40 to-cyan/35 text-white shadow-violet-glow"
-                : "text-muted-foreground hover:bg-black/40 hover:text-slate-300",
+                ? "bg-gradient-to-r from-violet/40 to-cyan/35 text-white shadow-glow"
+                : "text-muted-foreground hover:bg-surface-deep hover:text-slate-300",
             )}
           >
             {tab.label}

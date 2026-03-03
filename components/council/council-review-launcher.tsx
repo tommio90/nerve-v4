@@ -69,12 +69,12 @@ export function CouncilReviewLauncher({
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 py-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2 py-2 text-caption">
           <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
           Loading sessions...
         </div>
       ) : sessions.length === 0 ? (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-caption">
           No council sessions for this {entityType.toLowerCase()} yet.
         </p>
       ) : (
@@ -113,11 +113,11 @@ export function CouncilReviewLauncher({
 
       {/* Modal */}
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-deep backdrop-blur-sm p-4">
           <Card className="w-full max-w-lg space-y-4 p-4 sm:p-6">
             <div>
               <h3 className="text-sm font-semibold">Run Council Review</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <p className="mt-0.5 text-caption">
                 Submit "{title}" for council evaluation
               </p>
             </div>

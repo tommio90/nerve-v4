@@ -74,7 +74,7 @@ function renderMessageContent(content: string) {
     if (line.startsWith("```")) return null;
     if (line.trim() === "") return <div key={i} className="h-1.5" />;
     // Bold
-    const html = line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/`(.*?)`/g, '<code class="rounded bg-black/40 px-1 py-0.5 text-[10px] text-cyan">$1</code>');
+    const html = line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/`(.*?)`/g, '<code class="rounded bg-surface-deep px-1 py-0.5 text-[10px] text-cyan">$1</code>');
     return <p key={i} className="text-xs leading-relaxed" dangerouslySetInnerHTML={{ __html: html }} />;
   });
 }
@@ -306,9 +306,9 @@ export function DocChat({
   }
 
   return (
-    <div className="fixed bottom-0 right-0 top-0 z-50 flex w-full flex-col border-l border-white/10 bg-black/40 shadow-2xl sm:w-96">
+    <div className="fixed bottom-0 right-0 top-0 z-50 flex w-full flex-col border-l border-border bg-surface-deep shadow-2xl sm:w-96">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-2">
           <span className="text-base">🦞</span>
           <span className="text-sm font-semibold text-foreground">Lobster</span>
@@ -317,14 +317,14 @@ export function DocChat({
         <div className="flex items-center gap-1">
           <button
             onClick={clearChat}
-            className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-black/40 hover:text-slate-300"
+            className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-surface-deep hover:text-slate-300"
             title="Clear chat"
           >
             <Trash2 className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={() => setOpen(false)}
-            className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-black/40 hover:text-slate-300"
+            className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-surface-deep hover:text-slate-300"
           >
             <X className="h-4 w-4" />
           </button>
@@ -333,20 +333,20 @@ export function DocChat({
 
       {/* Selected text banner */}
       {selectedText && (
-        <div className="border-b border-white/10 bg-cyan/5 px-4 py-2">
+        <div className="border-b border-border bg-cyan/5 px-4 py-2">
           <div className="flex items-center justify-between gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-cyan">Selected text</span>
             <button onClick={onClearSelection} className="text-muted-foreground hover:text-slate-300">
               <X className="h-3 w-3" />
             </button>
           </div>
-          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground italic">"{selectedText.slice(0, 200)}{selectedText.length > 200 ? "..." : ""}"</p>
+          <p className="mt-1 line-clamp-2 text-caption italic">"{selectedText.slice(0, 200)}{selectedText.length > 200 ? "..." : ""}"</p>
           <div className="mt-2 flex gap-1.5">
             {["Edit this", "Expand", "Summarize", "Add comment"].map((action) => (
               <button
                 key={action}
                 onClick={() => sendMessage(action)}
-                className="rounded-md border border-white/10 bg-black/40 px-2 py-1 text-[10px] text-slate-300 transition hover:border-cyan/30 hover:bg-cyan/10 hover:text-cyan"
+                className="rounded-md border border-border bg-surface-deep px-2 py-1 text-[10px] text-slate-300 transition hover:border-ring hover:bg-cyan/10 hover:text-cyan"
               >
                 {action}
               </button>
@@ -359,7 +359,7 @@ export function DocChat({
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {loadingHistory && (
           <div className="flex items-center justify-center h-full">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 text-caption">
               <Loader2 className="h-3 w-3 animate-spin" />
               Loading chat history...
             </div>
@@ -369,7 +369,7 @@ export function DocChat({
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
             <span className="text-3xl mb-3">🦞</span>
             <p className="text-sm font-semibold text-slate-200 mb-1">Doc Assistant</p>
-            <p className="text-xs text-muted-foreground mb-4">Ask me to write, edit, or improve your document. Highlight text for targeted edits.</p>
+            <p className="text-caption mb-4">Ask me to write, edit, or improve your document. Highlight text for targeted edits.</p>
             <div className="space-y-1.5 w-full">
               {[
                 "Write an executive summary",
@@ -379,7 +379,7 @@ export function DocChat({
                 <button
                   key={suggestion}
                   onClick={() => { setInput(suggestion); setTimeout(() => sendMessage(suggestion), 50); }}
-                  className="w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-left text-xs text-muted-foreground transition hover:border-cyan/20 hover:text-slate-200"
+                  className="w-full rounded-lg border border-border bg-surface-deep px-3 py-2 text-left text-caption transition hover:border-ring hover:text-slate-200"
                 >
                   {suggestion}
                 </button>
@@ -396,11 +396,11 @@ export function DocChat({
               className={`rounded-xl px-3 py-2 ${
                 msg.role === "user"
                   ? "bg-cyan/15 text-slate-200"
-                  : "bg-black/40 border border-white/10 text-slate-300"
+                  : "bg-surface-deep border border-border text-slate-300"
               }`}
             >
               {msg.role === "assistant" && msg.content === "" && streaming ? (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 text-caption">
                   <Loader2 className="h-3 w-3 animate-spin" />
                   Thinking...
                 </div>
@@ -412,7 +412,7 @@ export function DocChat({
               <div className="mt-1 flex gap-1 pl-1">
                 <button
                   onClick={() => copyContent(msg.id, msg.content)}
-                  className="rounded p-1 text-slate-500 transition hover:bg-black/40 hover:text-muted-foreground"
+                  className="rounded p-1 text-slate-500 transition hover:bg-surface-deep hover:text-muted-foreground"
                   title="Copy"
                 >
                   {copiedId === msg.id ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
@@ -425,7 +425,7 @@ export function DocChat({
       </div>
 
       {/* Input */}
-      <div className="border-t border-white/10 px-4 py-3">
+      <div className="border-t border-border px-4 py-3">
         <div className="flex items-end gap-2">
           <textarea
             ref={inputRef}
@@ -439,7 +439,7 @@ export function DocChat({
             }}
             placeholder={selectedText ? "What do you want to do with the selection?" : "Ask Lobster to write or edit..."}
             rows={1}
-            className="flex-1 resize-none rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-200 placeholder:text-muted-foreground focus:border-cyan/50 focus:outline-none"
+            className="flex-1 resize-none rounded-lg border border-border bg-surface-deep px-3 py-2 text-sm text-slate-200 placeholder:text-muted-foreground focus:border-ring focus:outline-none"
             style={{ maxHeight: "120px" }}
             onInput={(e) => {
               const t = e.target as HTMLTextAreaElement;

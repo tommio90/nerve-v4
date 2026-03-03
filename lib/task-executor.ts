@@ -21,7 +21,7 @@ type ResearchSource = {
   snippet: string;
 };
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getOpenAI() { return new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); }
 
 function extractResponseText(response: unknown): string {
   const outputText = (response as { output_text?: unknown }).output_text;
@@ -96,7 +96,7 @@ async function getTaskForExecution(taskId: string) {
 }
 
 async function generateWithGpt4o(prompt: string): Promise<string> {
-  const response = await openai.responses.create({
+  const response = await getOpenAI().responses.create({
     model: "gpt-4o",
     input: [
       {
@@ -183,7 +183,7 @@ async function runResearchTask(task: NonNullable<TaskWithProject>, executionCont
 
   const query = [task.title, task.description, task.deliverable].filter(Boolean).join("\n");
 
-  const searchResponse = await openai.responses.create({
+  const searchResponse = await getOpenAI().responses.create({
     model: "gpt-4o",
     tools: [{ type: "web_search_preview" }],
     input: [

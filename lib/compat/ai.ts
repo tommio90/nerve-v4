@@ -3,7 +3,7 @@ import { createReadStream } from "node:fs";
 import type { ZodTypeAny, infer as ZodInfer } from "zod";
 import type { OpenAIModelRef } from "@/lib/compat/ai-sdk-openai";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getClient() { return new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); }
 
 type GenerateObjectInput<TSchema extends ZodTypeAny> = {
   model: OpenAIModelRef;
@@ -25,7 +25,7 @@ export async function generateObject<TSchema extends ZodTypeAny>({
   prompt,
   schema,
 }: GenerateObjectInput<TSchema>): Promise<{ object: ZodInfer<TSchema> }> {
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: model.model,
     response_format: { type: "json_object" },
     messages: [
@@ -54,7 +54,7 @@ export async function transcribeAudioWithWhisper({
   language,
   prompt,
 }: TranscribeAudioInput): Promise<string> {
-  const response = await client.audio.transcriptions.create({
+  const response = await getClient().audio.transcriptions.create({
     model: "whisper-1",
     file: createReadStream(filePath),
     ...(language ? { language } : {}),

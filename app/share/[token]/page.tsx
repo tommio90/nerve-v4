@@ -2,6 +2,8 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { db } from "@/lib/db";
 import { parseTags } from "@/lib/doc-tags";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
 export default async function SharedDocPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -28,20 +30,20 @@ export default async function SharedDocPage({ params }: { params: Promise<{ toke
         <header className="space-y-3">
           <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Shared Document</p>
           <h1 className="text-3xl font-semibold leading-tight text-zinc-100">{doc.title}</h1>
-          <div className="flex flex-wrap gap-2 text-xs text-zinc-400">
-            {doc.source ? <span className="rounded-full border border-zinc-800 px-3 py-1">Source: {doc.source}</span> : null}
-            {doc.venture ? <span className="rounded-full border border-zinc-800 px-3 py-1">Venture: {doc.venture}</span> : null}
+          <div className="flex flex-wrap gap-2 text-xs">
+            {doc.source ? <Badge variant="outline">Source: {doc.source}</Badge> : null}
+            {doc.venture ? <Badge variant="outline">Venture: {doc.venture}</Badge> : null}
             {tags.map((tag) => (
-              <span key={tag} className="rounded-full border border-zinc-800 px-3 py-1 text-zinc-300">#{tag}</span>
+              <Badge key={tag} variant="outline" className="text-zinc-300">#{tag}</Badge>
             ))}
           </div>
         </header>
 
-        <section className="rounded-2xl border border-zinc-900 bg-zinc-950/60 p-6">
+        <Card className="border-zinc-900 bg-zinc-950/60 p-6">
           <article className="prose prose-invert max-w-none text-sm">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{doc.content}</ReactMarkdown>
           </article>
-        </section>
+        </Card>
 
         <footer className="pt-6 text-xs text-zinc-500">
           <a href="https://nerve-v3.vercel.app" className="transition hover:text-zinc-300">

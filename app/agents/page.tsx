@@ -6,7 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Bot, LayoutGrid, List, Plus, Sparkles, X } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
+import { Bot, LayoutGrid, List, Plus, Sparkles } from "lucide-react";
 
 type Agent = {
   id: string;
@@ -141,17 +146,17 @@ export default function AgentsPage() {
     return (
       <div key={agent.id} className="space-y-3">
         <Card
-          className="flex items-center justify-between gap-3 p-3 cursor-pointer hover:border-cyan/40"
+          className="flex items-center justify-between gap-3 p-3 cursor-pointer hover:border-ring"
           onClick={() => setSelected(agent)}
         >
           <div>
             <p className="text-sm font-semibold">{agent.name}</p>
-            <p className="text-xs text-muted-foreground">{agent.role}</p>
+            <p className="text-caption">{agent.role}</p>
           </div>
           <Badge className={STATUS_TONES[agent.status] ?? STATUS_TONES.idle}>{agent.status}</Badge>
         </Card>
         {children.length > 0 ? (
-          <div className="ml-4 grid gap-3 border-l border-white/10 pl-4">
+          <div className="ml-4 grid gap-3 border-l border-border pl-4">
             {children.map(renderNode)}
           </div>
         ) : null}
@@ -163,8 +168,8 @@ export default function AgentsPage() {
     <div className="synapse-page animate-fade-in space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="synapse-heading">Agents</h1>
-          <p className="text-sm text-muted-foreground">Manage the org chart and activation status of your agent team.</p>
+          <h1 className="title-3">Agents</h1>
+          <p className="text-subtle">Manage the org chart and activation status of your agent team.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant={view === "list" ? "default" : "outline"} onClick={() => setView("list")}> <List className="h-4 w-4" /> </Button>
@@ -173,43 +178,43 @@ export default function AgentsPage() {
       </div>
 
       {loading ? (
-        <Card className="animate-pulse space-y-3 p-5">
-          <div className="h-4 w-2/5 rounded-full bg-muted/50" />
-          <div className="h-3 w-4/5 rounded-full bg-muted/40" />
+        <Card className="space-y-3 p-5">
+          <Skeleton className="h-4 w-2/5" />
+          <Skeleton className="h-3 w-4/5" />
         </Card>
       ) : agents.length === 0 ? (
         <Card className="flex flex-col items-center justify-center gap-3 py-10 text-center">
           <div className="rounded-full border border-violet/30 bg-violet/10 p-3">
             <Sparkles className="h-6 w-6 text-violet" />
           </div>
-          <p className="text-sm text-muted-foreground">No agents yet.</p>
+          <p className="text-subtle">No agents yet.</p>
           <Button onClick={seedDefaults} className="gap-2">
             <Plus className="h-4 w-4" />
             Seed default org chart
           </Button>
         </Card>
       ) : view === "list" ? (
-        <Card className="space-y-3 p-4">
-          <div className="grid grid-cols-4 gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            <span>Agent</span>
-            <span>Role</span>
-            <span>Status</span>
-            <span>Reports To</span>
-          </div>
-          <div className="space-y-2">
-            {agents.map((agent) => (
-              <div
-                key={agent.id}
-                className="grid grid-cols-4 gap-2 rounded-xl border border-white/10 bg-white/3 p-3 text-sm hover:border-cyan/40 cursor-pointer"
-                onClick={() => setSelected(agent)}
-              >
-                <span className="font-medium">{agent.name}</span>
-                <Badge className={ROLE_TONES[agent.role] ?? ""}>{agent.role}</Badge>
-                <Badge className={STATUS_TONES[agent.status] ?? STATUS_TONES.idle}>{agent.status}</Badge>
-                <span className="text-muted-foreground truncate">{reportingLabel(agent.reportingTo)}</span>
-              </div>
-            ))}
-          </div>
+        <Card className="overflow-hidden p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Agent</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Reports To</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {agents.map((agent) => (
+                <TableRow key={agent.id} className="cursor-pointer" onClick={() => setSelected(agent)}>
+                  <TableCell className="font-medium">{agent.name}</TableCell>
+                  <TableCell><Badge className={ROLE_TONES[agent.role] ?? ""}>{agent.role}</Badge></TableCell>
+                  <TableCell><Badge className={STATUS_TONES[agent.status] ?? STATUS_TONES.idle}>{agent.status}</Badge></TableCell>
+                  <TableCell className="text-muted-foreground truncate">{reportingLabel(agent.reportingTo)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </Card>
       ) : (
         <div className="grid gap-4">
@@ -217,89 +222,117 @@ export default function AgentsPage() {
         </div>
       )}
 
-      {selected ? (
-        <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/70" onClick={() => setSelected(null)} />
-          <div className="absolute right-0 top-0 h-full w-full max-w-lg bg-black/90 p-6 shadow-2xl transition-all animate-fade-in-up overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Agent Detail</h2>
-              <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+      <Sheet open={!!selected} onOpenChange={(open) => { if (!open) setSelected(null); }}>
+        <SheetContent className="overflow-y-auto sm:max-w-lg">
+          <SheetHeader>
+            <SheetTitle>Agent Detail</SheetTitle>
+            <SheetDescription>Configure agent settings and permissions.</SheetDescription>
+          </SheetHeader>
+          {selected && (
             <div className="mt-4 space-y-3">
-              <Input value={selected.name} onChange={(e) => setSelected({ ...selected, name: e.target.value })} />
-              <select
-                className="w-full rounded-md border border-white/10 bg-transparent px-2 py-2 text-sm"
-                value={selected.role}
-                onChange={(e) => setSelected({ ...selected, role: e.target.value })}
-              >
-                {ROLES.map((role) => (
-                  <option key={role} value={role} className="bg-black">
-                    {role}
-                  </option>
-                ))}
-              </select>
-              <Textarea value={selected.description} onChange={(e) => setSelected({ ...selected, description: e.target.value })} placeholder="Description" />
-              <Input
-                value={selected.tools.join(", ")}
-                onChange={(e) => setSelected({ ...selected, tools: e.target.value.split(",").map((item) => item.trim()).filter(Boolean) })}
-                placeholder="Tools (comma-separated)"
-              />
-              <Input
-                value={selected.memoryScope.join(", ")}
-                onChange={(e) => setSelected({ ...selected, memoryScope: e.target.value.split(",").map((item) => item.trim()).filter(Boolean) })}
-                placeholder="Memory scope (comma-separated)"
-              />
-              <Input
-                value={selected.okrLinks.join(", ")}
-                onChange={(e) => setSelected({ ...selected, okrLinks: e.target.value.split(",").map((item) => item.trim()).filter(Boolean) })}
-                placeholder="OKR links (comma-separated IDs)"
-              />
-              <div className="grid gap-2 sm:grid-cols-2">
-                <select
-                  className="rounded-md border border-white/10 bg-transparent px-2 py-2 text-sm"
-                  value={selected.approvalTier}
-                  onChange={(e) => setSelected({ ...selected, approvalTier: e.target.value })}
-                >
-                  {(["auto", "soft", "hard", "escalate"] as const).map((tier) => (
-                    <option key={tier} value={tier} className="bg-black">
-                      {tier}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  className="rounded-md border border-white/10 bg-transparent px-2 py-2 text-sm"
-                  value={selected.status}
-                  onChange={(e) => setSelected({ ...selected, status: e.target.value })}
-                >
-                  {(["idle", "working", "blocked", "error"] as const).map((status) => (
-                    <option key={status} value={status} className="bg-black">
-                      {status}
-                    </option>
-                  ))}
-                </select>
+              <div className="space-y-1.5">
+                <Label>Name</Label>
+                <Input value={selected.name} onChange={(e) => setSelected({ ...selected, name: e.target.value })} />
               </div>
-              <select
-                className="w-full rounded-md border border-white/10 bg-transparent px-2 py-2 text-sm"
-                value={selected.reportingTo ?? "founder"}
-                onChange={(e) => setSelected({ ...selected, reportingTo: e.target.value === "founder" ? "founder" : e.target.value })}
-              >
-                <option value="founder" className="bg-black">founder</option>
-                {agents.filter((agent) => agent.id !== selected.id).map((agent) => (
-                  <option key={agent.id} value={agent.id} className="bg-black">
-                    {agent.name}
-                  </option>
-                ))}
-              </select>
+              <div className="space-y-1.5">
+                <Label>Role</Label>
+                <Select value={selected.role} onValueChange={(val) => setSelected({ ...selected, role: val })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ROLES.map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {role}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Description</Label>
+                <Textarea value={selected.description} onChange={(e) => setSelected({ ...selected, description: e.target.value })} placeholder="Description" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Tools (comma-separated)</Label>
+                <Input
+                  value={selected.tools.join(", ")}
+                  onChange={(e) => setSelected({ ...selected, tools: e.target.value.split(",").map((item) => item.trim()).filter(Boolean) })}
+                  placeholder="Tools (comma-separated)"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Memory Scope (comma-separated)</Label>
+                <Input
+                  value={selected.memoryScope.join(", ")}
+                  onChange={(e) => setSelected({ ...selected, memoryScope: e.target.value.split(",").map((item) => item.trim()).filter(Boolean) })}
+                  placeholder="Memory scope (comma-separated)"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>OKR Links (comma-separated IDs)</Label>
+                <Input
+                  value={selected.okrLinks.join(", ")}
+                  onChange={(e) => setSelected({ ...selected, okrLinks: e.target.value.split(",").map((item) => item.trim()).filter(Boolean) })}
+                  placeholder="OKR links (comma-separated IDs)"
+                />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label>Approval Tier</Label>
+                  <Select value={selected.approvalTier} onValueChange={(val) => setSelected({ ...selected, approvalTier: val })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(["auto", "soft", "hard", "escalate"] as const).map((tier) => (
+                        <SelectItem key={tier} value={tier}>
+                          {tier}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Status</Label>
+                  <Select value={selected.status} onValueChange={(val) => setSelected({ ...selected, status: val })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(["idle", "working", "blocked", "error"] as const).map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Reports To</Label>
+                <Select value={selected.reportingTo ?? "founder"} onValueChange={(val) => setSelected({ ...selected, reportingTo: val === "founder" ? "founder" : val })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="founder">founder</SelectItem>
+                    {agents.filter((agent) => agent.id !== selected.id).map((agent) => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agent.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button onClick={() => saveAgent(selected)} className="gap-2">
                 <Bot className="h-4 w-4" />
                 Save Agent
               </Button>
             </div>
-          </div>
-        </div>
-      ) : null}
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

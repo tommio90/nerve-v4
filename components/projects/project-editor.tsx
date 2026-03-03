@@ -94,7 +94,7 @@ export function ProjectEditor({ id, description, reasoning, status }: ProjectEdi
             {!confirmDelete ? (
               <button
                 onClick={() => setConfirmDelete(true)}
-                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition hover:text-red-400"
+                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-caption transition hover:text-red-400"
               >
                 <Trash2 className="h-3 w-3" />
                 Delete

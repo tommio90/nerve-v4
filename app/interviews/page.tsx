@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { CalendarClock, MessageSquare, Sparkles } from "lucide-react";
 
 type Interview = {
@@ -42,33 +44,24 @@ export default function InterviewsPage() {
   return (
     <div className="synapse-page animate-fade-in space-y-4">
       <div>
-        <h1 className="synapse-heading">Interviews</h1>
-        <p className="text-sm text-muted-foreground">Track interview status and AI-extracted insights.</p>
+        <h1 className="title-3">Interviews</h1>
+        <p className="text-subtle">Track interview status and AI-extracted insights.</p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1">
-        {FILTERS.map((tab) => {
-          const active = filter === tab;
-          return (
-            <button
-              key={tab}
-              onClick={() => setFilter(tab)}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-                active
-                  ? "bg-violet/15 text-violet ring-1 ring-violet/35"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-            >
+      <Tabs value={filter} onValueChange={setFilter}>
+        <TabsList>
+          {FILTERS.map((tab) => (
+            <TabsTrigger key={tab} value={tab}>
               {tab}
-            </button>
-          );
-        })}
-      </div>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {loading ? (
-        <Card className="animate-pulse space-y-3 p-5">
-          <div className="h-4 w-2/5 rounded-full bg-muted/50" />
-          <div className="h-3 w-4/5 rounded-full bg-muted/40" />
+        <Card className="space-y-3 p-5">
+          <Skeleton className="h-4 w-2/5" />
+          <Skeleton className="h-3 w-4/5" />
         </Card>
       ) : (
         <div className="grid gap-3">
@@ -79,14 +72,14 @@ export default function InterviewsPage() {
                   <MessageSquare className="h-4 w-4 text-cyan" />
                   {interview.contact.name}
                 </Link>
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-caption">
                   <CalendarClock className="h-3.5 w-3.5" />
                   <span>{interview.scheduledAt ? new Date(interview.scheduledAt).toLocaleDateString() : "No schedule"}</span>
                   <span>Insights: {interview.insights?.length ?? 0}</span>
                   <span>{interview.followUpSent ? "Follow-up sent" : "No follow-up"}</span>
                 </div>
               </div>
-              <Badge>{interview.status}</Badge>
+              <StatusBadge status={interview.status} />
             </Card>
           ))}
           {filtered.length === 0 ? (
@@ -94,7 +87,7 @@ export default function InterviewsPage() {
               <div className="rounded-full border border-violet/30 bg-violet/10 p-3">
                 <Sparkles className="h-6 w-6 text-violet" />
               </div>
-              <p className="text-sm text-muted-foreground">No interviews yet.</p>
+              <p className="text-subtle">No interviews yet.</p>
             </Card>
           ) : null}
         </div>

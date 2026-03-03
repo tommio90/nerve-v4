@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
 import { Plus, Sparkles, Wand2 } from "lucide-react";
 
 type Persona = {
@@ -109,8 +111,8 @@ export default function PersonasPage() {
     <div className="synapse-page animate-fade-in space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="synapse-heading">Personas</h1>
-          <p className="text-sm text-muted-foreground">Capture high-resolution personas and AI adoption readiness.</p>
+          <h1 className="title-3">Personas</h1>
+          <p className="text-subtle">Capture high-resolution personas and AI adoption readiness.</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="gap-2">
           <Plus className="h-4 w-4" />
@@ -119,13 +121,13 @@ export default function PersonasPage() {
       </div>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent onClose={() => setShowForm(false)}>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Create Persona</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-2">
-              <label className="text-xs text-muted-foreground">AI Generate</label>
+              <Label className="text-caption">AI Generate</Label>
               <Textarea
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -150,7 +152,7 @@ export default function PersonasPage() {
             <Textarea value={form.behaviors} onChange={(e) => setForm({ ...form, behaviors: e.target.value })} placeholder="Behaviors (one per line)" />
             <Textarea value={form.dayInLife} onChange={(e) => setForm({ ...form, dayInLife: e.target.value })} placeholder="Day in the life" />
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">AI Adoption Readiness: {form.aiAdoptionReadiness}%</label>
+              <Label className="text-caption">AI Adoption Readiness: {form.aiAdoptionReadiness}%</Label>
               <input
                 type="range"
                 min={0}
@@ -169,31 +171,33 @@ export default function PersonasPage() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse space-y-3 p-5">
-              <div className="h-4 w-2/5 rounded-full bg-muted/50" />
-              <div className="h-3 w-4/5 rounded-full bg-muted/40" />
+            <Card key={i} className="space-y-3 p-5">
+              <Skeleton className="h-4 w-2/5" />
+              <Skeleton className="h-3 w-4/5" />
             </Card>
           ))}
         </div>
       ) : (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {cards.map((persona) => (
-            <Card key={persona.id} className="space-y-3 p-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold">{persona.name}</h3>
+            <Card key={persona.id} className="p-0">
+              <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
+                <CardTitle>{persona.name}</CardTitle>
                 {persona.archetype ? <Badge>{persona.archetype}</Badge> : null}
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>AI readiness</span>
-                  <span>{Math.round(persona.aiAdoptionReadiness)}%</span>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-caption">
+                    <span>AI readiness</span>
+                    <span>{Math.round(persona.aiAdoptionReadiness)}%</span>
+                  </div>
+                  <Progress value={persona.aiAdoptionReadiness} />
                 </div>
-                <Progress value={persona.aiAdoptionReadiness} />
-              </div>
-              <div className="space-y-1 text-xs text-muted-foreground">
-                <p>Goals: {(persona.goals ?? []).slice(0, 3).join(" · ") || "None"}</p>
-                <p>Pains: {(persona.pains ?? []).slice(0, 3).join(" · ") || "None"}</p>
-              </div>
+                <div className="space-y-1 text-caption">
+                  <p>Goals: {(persona.goals ?? []).slice(0, 3).join(" · ") || "None"}</p>
+                  <p>Pains: {(persona.pains ?? []).slice(0, 3).join(" · ") || "None"}</p>
+                </div>
+              </CardContent>
             </Card>
           ))}
           {cards.length === 0 ? (
@@ -201,7 +205,7 @@ export default function PersonasPage() {
               <div className="rounded-full border border-violet/30 bg-violet/10 p-3">
                 <Sparkles className="h-6 w-6 text-violet" />
               </div>
-              <p className="text-sm text-muted-foreground">No personas yet — create the first one.</p>
+              <p className="text-subtle">No personas yet — create the first one.</p>
             </Card>
           ) : null}
         </div>

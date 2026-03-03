@@ -2,6 +2,8 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { useEffect, useState, useCallback } from "react";
 
 type Preference = { id: string; dimension: string; value: number; confidence: number; sampleSize: number; reasoning: string };
@@ -59,11 +61,11 @@ export default function PreferencesPage() {
     <div className="synapse-page space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="synapse-heading">Preferences</h1>
-          <p className="text-sm text-muted-foreground">Learned from your approval/rejection patterns</p>
+          <h1 className="title-3">Preferences</h1>
+          <p className="text-subtle">Learned from your approval/rejection patterns</p>
         </div>
         <div className="flex items-center gap-3">
-          {analyzeResult && <span className="text-xs text-muted-foreground">{analyzeResult}</span>}
+          {analyzeResult && <span className="text-caption">{analyzeResult}</span>}
           <Button variant="outline" size="sm" onClick={handleAnalyze} disabled={analyzing}>
             {analyzing ? "Analyzing…" : "🔄 Analyze Decisions"}
           </Button>
@@ -71,22 +73,24 @@ export default function PreferencesPage() {
       </div>
 
       {loading ? (
-        <div className="space-y-3">{[1,2,3].map(i => <Card key={i} className="h-16 animate-pulse bg-muted/20" />)}</div>
+        <div className="space-y-3">
+          {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 rounded-2xl" />)}
+        </div>
       ) : (
         <>
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
             <Card className="text-center">
               <div className="text-2xl font-bold text-emerald-400">{approvals}</div>
-              <div className="text-xs text-muted-foreground">Approved</div>
+              <div className="text-caption">Approved</div>
             </Card>
             <Card className="text-center">
               <div className="text-2xl font-bold text-red-400">{rejects}</div>
-              <div className="text-xs text-muted-foreground">Rejected</div>
+              <div className="text-caption">Rejected</div>
             </Card>
             <Card className="text-center">
               <div className="text-2xl font-bold text-amber-400">{defers}</div>
-              <div className="text-xs text-muted-foreground">Deferred</div>
+              <div className="text-caption">Deferred</div>
             </Card>
           </div>
 
@@ -95,7 +99,7 @@ export default function PreferencesPage() {
             <h2 className="mb-3 text-sm font-semibold text-slate-300">Learned Dimensions</h2>
             {prefs.length === 0 ? (
               <Card>
-                <p className="text-sm text-muted-foreground">No preference signals yet. They build as you approve and reject proposals. Click "Analyze Decisions" after making some decisions.</p>
+                <p className="text-subtle">No preference signals yet. They build as you approve and reject proposals. Click &quot;Analyze Decisions&quot; after making some decisions.</p>
               </Card>
             ) : (
               <div className="space-y-2">
@@ -106,7 +110,7 @@ export default function PreferencesPage() {
                       <span className="text-sm font-mono text-muted-foreground">{p.value.toFixed(2)}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="h-1.5 flex-1 rounded-full bg-white/10">
+                      <div className="h-1.5 flex-1 rounded-full bg-surface-hover">
                         <div
                           className="h-full rounded-full bg-cyan transition-all"
                           style={{ width: `${Math.min(p.value * 100, 100)}%` }}
@@ -114,7 +118,7 @@ export default function PreferencesPage() {
                       </div>
                       <span className="text-[10px] text-muted-foreground">{(p.confidence * 100).toFixed(0)}% conf</span>
                     </div>
-                    {p.reasoning && <p className="text-xs text-muted-foreground">{p.reasoning}</p>}
+                    {p.reasoning && <p className="text-caption">{p.reasoning}</p>}
                     <p className="text-[10px] text-slate-500">{p.sampleSize} samples</p>
                   </Card>
                 ))}
@@ -126,11 +130,11 @@ export default function PreferencesPage() {
           <div>
             <h2 className="mb-3 text-sm font-semibold text-slate-300">Decision History</h2>
             {decisions.length === 0 ? (
-              <Card><p className="text-sm text-muted-foreground">No decisions recorded yet.</p></Card>
+              <Card><p className="text-subtle">No decisions recorded yet.</p></Card>
             ) : (
               <div className="space-y-1.5">
                 {decisions.slice(0, 50).map((d) => (
-                  <div key={d.id} className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2">
+                  <div key={d.id} className="flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-2">
                     <span className="text-sm">
                       {d.action === "APPROVE" ? "✅" : d.action === "REJECT" ? "❌" : "⏸️"}
                     </span>
@@ -138,11 +142,13 @@ export default function PreferencesPage() {
                       <div className="flex items-center gap-2 text-xs">
                         <span className="font-medium text-slate-300">{d.entityType}</span>
                         <span className="text-slate-600">·</span>
-                        <span className="text-muted-foreground">{d.action}</span>
+                        <Badge variant={d.action === "APPROVE" ? "complete" : d.action === "REJECT" ? "failed" : "deferred"}>
+                          {d.action}
+                        </Badge>
                         <span className="text-slate-600">·</span>
                         <span className="text-muted-foreground">{formatDate(d.createdAt)}</span>
                       </div>
-                      {d.feedback && <p className="mt-0.5 text-xs text-muted-foreground truncate">{d.feedback}</p>}
+                      {d.feedback && <p className="mt-0.5 text-caption truncate">{d.feedback}</p>}
                     </div>
                   </div>
                 ))}

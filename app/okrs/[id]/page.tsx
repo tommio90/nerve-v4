@@ -2,11 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Target, Plus } from "lucide-react";
 
 type KeyResult = {
@@ -103,10 +106,10 @@ export default function OkrDetailPage() {
   if (loading || !okr) {
     return (
       <div className="synapse-page animate-fade-in space-y-4">
-        <Card className="animate-pulse space-y-3 p-5">
-          <div className="h-4 w-2/5 rounded-full bg-muted/50" />
-          <div className="h-3 w-4/5 rounded-full bg-muted/40" />
-          <div className="h-3 w-1/3 rounded-full bg-muted/30" />
+        <Card className="space-y-3 p-5">
+          <Skeleton className="h-4 w-2/5" />
+          <Skeleton className="h-3 w-4/5" />
+          <Skeleton className="h-3 w-1/3" />
         </Card>
       </div>
     );
@@ -115,7 +118,7 @@ export default function OkrDetailPage() {
   return (
     <div className="synapse-page animate-fade-in space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="synapse-heading inline-flex items-center gap-2">
+        <h1 className="title-3 inline-flex items-center gap-2">
           <Target className="h-5 w-5 text-cyan" />
           {okr.title}
         </h1>
@@ -131,21 +134,22 @@ export default function OkrDetailPage() {
         </div>
         <Textarea value={okr.description ?? ""} onChange={(e) => setOkr({ ...okr, description: e.target.value })} placeholder="Objective description" />
         <div className="flex items-center gap-2">
-          <label className="text-xs text-muted-foreground">Status</label>
-          <select
-            className="rounded-md border border-white/10 bg-transparent px-2 py-1 text-xs"
-            value={okr.status}
-            onChange={(e) => setOkr({ ...okr, status: e.target.value })}
-          >
-            {["ACTIVE", "COMPLETED", "CANCELLED"].map((status) => (
-              <option key={status} value={status} className="bg-black">
-                {status}
-              </option>
-            ))}
-          </select>
+          <Label className="text-caption">Status</Label>
+          <Select value={okr.status} onValueChange={(val) => setOkr({ ...okr, status: val })}>
+            <SelectTrigger className="w-auto">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {["ACTIVE", "COMPLETED", "CANCELLED"].map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center justify-between text-caption">
             <span>Overall progress</span>
             <span>{overallProgress}%</span>
           </div>
@@ -153,19 +157,21 @@ export default function OkrDetailPage() {
         </div>
       </Card>
 
-      <Card className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Key Results</h2>
-          <span className="text-xs text-muted-foreground">{okr.keyResults.length} total</span>
-        </div>
-        <div className="space-y-3">
+      <Card className="p-0">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Key Results</CardTitle>
+            <span className="text-caption">{okr.keyResults.length} total</span>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
           {okr.keyResults.map((kr) => {
             const progress = kr.target ? Math.min(100, (kr.current / kr.target) * 100) : 0;
             return (
-              <div key={kr.id} className="rounded-xl border border-white/10 bg-white/3 p-3 space-y-2">
+              <div key={kr.id} className="rounded-xl border border-border bg-surface p-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-medium">{kr.title}</span>
-                  <span className="text-xs text-muted-foreground">{Math.round(progress)}%</span>
+                  <span className="text-caption">{Math.round(progress)}%</span>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-3">
                   <Input
@@ -197,44 +203,51 @@ export default function OkrDetailPage() {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-muted-foreground">Status</label>
-                  <select
-                    className="rounded-md border border-white/10 bg-transparent px-2 py-1 text-xs"
+                  <Label className="text-caption">Status</Label>
+                  <Select
                     value={kr.status}
-                    onChange={(e) => {
-                      const next = e.target.value;
+                    onValueChange={(val) => {
                       setOkr({
                         ...okr,
-                        keyResults: okr.keyResults.map((item) => (item.id === kr.id ? { ...item, status: next } : item)),
+                        keyResults: okr.keyResults.map((item) => (item.id === kr.id ? { ...item, status: val } : item)),
                       });
-                      updateKeyResult(kr.id, { status: next });
+                      updateKeyResult(kr.id, { status: val });
                     }}
                   >
-                    {["ON_TRACK", "AT_RISK", "BEHIND", "COMPLETED"].map((status) => (
-                      <option key={status} value={status} className="bg-black">
-                        {status}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-auto">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {["ON_TRACK", "AT_RISK", "BEHIND", "COMPLETED"].map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             );
           })}
-          {okr.keyResults.length === 0 ? <p className="text-sm text-muted-foreground">No key results yet.</p> : null}
-        </div>
+          {okr.keyResults.length === 0 ? <p className="text-subtle">No key results yet.</p> : null}
+        </CardContent>
       </Card>
 
-      <Card className="space-y-3">
-        <h2 className="text-sm font-semibold">Add Key Result</h2>
-        <div className="grid gap-2 sm:grid-cols-3">
-          <Input value={newKrTitle} onChange={(e) => setNewKrTitle(e.target.value)} placeholder="Key result" />
-          <Input value={newKrTarget} onChange={(e) => setNewKrTarget(e.target.value)} placeholder="Target" type="number" />
-          <Input value={newKrUnit} onChange={(e) => setNewKrUnit(e.target.value)} placeholder="Unit" />
-        </div>
-        <Button onClick={createKeyResult} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Key Result
-        </Button>
+      <Card className="p-0">
+        <CardHeader>
+          <CardTitle>Add Key Result</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid gap-2 sm:grid-cols-3">
+            <Input value={newKrTitle} onChange={(e) => setNewKrTitle(e.target.value)} placeholder="Key result" />
+            <Input value={newKrTarget} onChange={(e) => setNewKrTarget(e.target.value)} placeholder="Target" type="number" />
+            <Input value={newKrUnit} onChange={(e) => setNewKrUnit(e.target.value)} placeholder="Unit" />
+          </div>
+          <Button onClick={createKeyResult} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Key Result
+          </Button>
+        </CardContent>
       </Card>
     </div>
   );

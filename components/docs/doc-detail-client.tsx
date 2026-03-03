@@ -7,8 +7,11 @@ import { useRouter } from "next/navigation";
 import { Check, Copy, Link2, Pencil, Save, Trash2 } from "lucide-react";
 import { DocChat } from "@/components/docs/doc-chat";
 import { SelectionToolbar } from "@/components/docs/selection-toolbar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import { parseTags } from "@/lib/doc-tags";
 
@@ -59,7 +62,7 @@ function renderMarkdown(md: string) {
     if (line.startsWith("```")) {
       if (inCodeBlock) {
         elements.push(
-          <pre key={key} className="my-3 overflow-x-auto rounded-lg bg-black/40 p-4 text-xs text-muted-foreground">
+          <pre key={key} className="my-3 overflow-x-auto rounded-lg bg-surface-deep p-4 text-caption">
             <code>{codeLines.join("\n")}</code>
           </pre>,
         );
@@ -81,7 +84,7 @@ function renderMarkdown(md: string) {
     } else if (line.startsWith("### ")) {
       elements.push(<h3 key={key} className="mb-2 mt-4 text-lg font-semibold text-slate-200">{line.slice(4)}</h3>);
     } else if (line.startsWith("---")) {
-      elements.push(<hr key={key} className="my-4 border-white/10" />);
+      elements.push(<hr key={key} className="my-4 border-border" />);
     } else if (line.startsWith("- ") || line.startsWith("* ")) {
       elements.push(
         <div key={key} className="flex gap-2 py-0.5 pl-4 text-sm text-slate-300">
@@ -99,7 +102,7 @@ function renderMarkdown(md: string) {
       );
     } else if (line.startsWith("|")) {
       elements.push(
-        <div key={key} className="font-mono text-xs text-muted-foreground">
+        <div key={key} className="font-mono text-caption">
           {line}
         </div>,
       );
@@ -290,14 +293,16 @@ export function DocDetailClient({ doc }: DocDetailClientProps) {
 
   return (
     <div className="synapse-page animate-fade-in space-y-4">
-      <Link
-        href="/docs"
-        className="w-fit rounded-md text-xs font-semibold text-muted-foreground transition hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan"
+      <Button
+        variant="link"
+        size="sm"
+        asChild
+        className="h-auto w-fit p-0 text-xs font-semibold text-muted-foreground hover:text-slate-300 hover:no-underline"
       >
-        ← Back to docs
-      </Link>
+        <Link href="/docs">← Back to docs</Link>
+      </Button>
 
-      <div className="relative rounded-2xl border border-white/10 bg-black/40 p-6" ref={docContentRef}>
+      <Card className="relative border-border bg-surface-deep p-6" ref={docContentRef}>
         {!editMode ? (
           <SelectionToolbar
             containerRef={docContentRef}
@@ -307,22 +312,23 @@ export function DocDetailClient({ doc }: DocDetailClientProps) {
 
         <div className="mb-4 flex flex-wrap items-center gap-3">
           {selectedDoc.category ? (
-            <span className="rounded-full bg-black/40 px-3 py-1 text-xs text-muted-foreground">
+            <Badge variant="default" className="rounded-full">
               {CATEGORY_ICONS[selectedDoc.category] ?? "📄"} {selectedDoc.category}
-            </span>
+            </Badge>
           ) : null}
           {selectedDoc.venture ? (
-            <span className="rounded-full bg-black/40 px-3 py-1 text-xs text-muted-foreground">{selectedDoc.venture}</span>
+            <Badge variant="default" className="rounded-full">{selectedDoc.venture}</Badge>
           ) : null}
           {parseTags(selectedDoc.tags).map((tag) => (
-            <span key={tag} className="rounded-full bg-black/40 px-3 py-1 text-xs text-cyan">
-              #{tag}
-            </span>
+            <Badge key={tag} variant="proposed" className="rounded-full">#{tag}</Badge>
           ))}
-          <span className="text-xs text-muted-foreground">{formatDate(selectedDoc.createdAt)}</span>
+          <span className="text-caption">{formatDate(selectedDoc.createdAt)}</span>
 
           <div className="flex w-full flex-wrap justify-end gap-1.5">
-            <button
+            <Button
+              size="sm"
+              variant={editMode ? "default" : "ghost"}
+              className={editMode ? "bg-emerald-600 text-white hover:bg-emerald-500" : ""}
               onClick={() => {
                 if (editMode) {
                   void saveDoc(editContent);
@@ -331,9 +337,6 @@ export function DocDetailClient({ doc }: DocDetailClientProps) {
                   setConfirmEditOpen(true);
                 }
               }}
-              className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan ${
-                editMode ? "bg-emerald-600 text-white hover:bg-emerald-500" : "bg-black/40 text-slate-300 hover:bg-black/40"
-              }`}
             >
               {editMode ? (
                 <>
@@ -344,25 +347,20 @@ export function DocDetailClient({ doc }: DocDetailClientProps) {
                   <Pencil className="h-3 w-3" /> Edit
                 </>
               )}
-            </button>
+            </Button>
 
             {saved ? <span className="self-center text-xs text-emerald-400">✓ Saved</span> : null}
-            {saving ? <span className="self-center text-xs text-muted-foreground">Saving...</span> : null}
-            <button
-              onClick={() => setConfirmDeleteOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan"
-            >
+            {saving ? <span className="self-center text-caption">Saving...</span> : null}
+            <Button size="sm" variant="destructive" onClick={() => setConfirmDeleteOpen(true)}>
               <Trash2 className="h-3 w-3" /> Delete
-            </button>
+            </Button>
 
-            <button
+            <Button
+              size="sm"
+              variant={selectedDoc.isPublic ? "default" : "ghost"}
+              className={selectedDoc.isPublic ? "bg-emerald-600 text-white hover:bg-emerald-500" : ""}
               onClick={() => void toggleShare(!selectedDoc.isPublic)}
               disabled={shareLoading}
-              className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan disabled:opacity-60 ${
-                selectedDoc.isPublic
-                  ? "bg-emerald-600 text-white hover:bg-emerald-500"
-                  : "bg-black/40 text-slate-300 hover:bg-black/40"
-              }`}
             >
               {selectedDoc.isPublic ? (
                 <>
@@ -373,22 +371,20 @@ export function DocDetailClient({ doc }: DocDetailClientProps) {
                   <Link2 className="h-3 w-3" /> Share
                 </>
               )}
-            </button>
+            </Button>
 
-            <button
-              onClick={() => setShowImageGen((value) => !value)}
-              className="rounded-lg bg-black/40 px-4 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-black/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan"
-            >
+            <Button size="sm" variant="ghost" onClick={() => setShowImageGen((value) => !value)}>
               🎨 Image
-            </button>
+            </Button>
 
-            <button
+            <Button
+              size="sm"
+              className="bg-blue-600 text-white hover:bg-blue-500"
               onClick={() => void generatePodcast()}
               disabled={podcastLoading}
-              className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan disabled:opacity-50"
             >
               {podcastLoading ? "🎙️ Generating…" : "🎙️ Podcast"}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -396,32 +392,34 @@ export function DocDetailClient({ doc }: DocDetailClientProps) {
           <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100">
             <span className="text-emerald-200">Public link:</span>
             <span className="truncate font-mono text-emerald-100">{shareUrl}</span>
-            <button
+            <Button
+              size="sm"
+              className="ml-auto bg-emerald-600 text-white hover:bg-emerald-500"
               onClick={() => void copyShareUrl()}
-              className="ml-auto inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-1 text-[11px] font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan"
             >
               <Copy className="h-3 w-3" /> Copy
-            </button>
+            </Button>
           </div>
         ) : null}
 
         {showImageGen ? (
-          <div className="mb-4 space-y-3 rounded-lg bg-black/40 p-4">
+          <div className="mb-4 space-y-3 rounded-lg bg-surface-deep p-4">
             <div className="flex gap-2">
-              <input
+              <Input
                 value={imagePrompt}
                 onChange={(e) => setImagePrompt(e.target.value)}
                 placeholder="Describe the image to generate..."
-                className="flex-1 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-200 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan"
+                className="flex-1 border-border bg-surface-deep text-slate-200"
                 onKeyDown={(e) => e.key === "Enter" && void generateImage()}
               />
-              <button
+              <Button
+                size="sm"
+                className="bg-emerald-600 text-white hover:bg-emerald-500"
                 onClick={() => void generateImage()}
                 disabled={imageLoading || !imagePrompt.trim()}
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan disabled:opacity-50"
               >
                 {imageLoading ? "Generating…" : "Generate"}
-              </button>
+              </Button>
             </div>
             {imageError ? <p className="text-xs text-red-400">{imageError}</p> : null}
             {imageUrl ? <img src={imageUrl} alt="Generated" className="max-w-full rounded-lg" /> : null}
@@ -430,15 +428,17 @@ export function DocDetailClient({ doc }: DocDetailClientProps) {
 
         {podcastError ? <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-400">{podcastError}</div> : null}
         {podcastAudio ? (
-          <div className="mb-4 space-y-3 rounded-lg bg-black/40 p-4">
+          <div className="mb-4 space-y-3 rounded-lg bg-surface-deep p-4">
             <div className="flex items-center gap-3">
               <span className="text-sm font-semibold text-white">🎧 Podcast</span>
-              <button
+              <Button
+                variant="link"
+                size="sm"
+                className="h-auto p-0 text-caption hover:text-slate-300 hover:no-underline"
                 onClick={() => setShowScript((value) => !value)}
-                className="rounded-md text-xs text-muted-foreground transition hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan"
               >
                 {showScript ? "Hide script" : "Show script"}
-              </button>
+              </Button>
             </div>
             <audio controls className="w-full" src={podcastAudio} />
             {showScript && podcastScript ? (
@@ -461,13 +461,13 @@ export function DocDetailClient({ doc }: DocDetailClientProps) {
             ref={editorRef}
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
-            className="min-h-[500px] w-full resize-y rounded-lg border border-white/10 bg-black/40 p-4 font-mono text-sm leading-relaxed text-slate-200 placeholder:text-slate-500 focus:border-cyan/50 focus:outline-none"
+            className="min-h-[500px] w-full resize-y rounded-lg border border-border bg-surface-deep p-4 font-mono text-sm leading-relaxed text-slate-200 placeholder:text-slate-500 focus:border-ring focus:outline-none"
             placeholder="Write your document in markdown..."
           />
         ) : (
           <div>{renderMarkdown(selectedDoc.content)}</div>
         )}
-      </div>
+      </Card>
 
       <DocChat
         documentId={selectedDoc.id}
@@ -485,7 +485,7 @@ export function DocDetailClient({ doc }: DocDetailClientProps) {
           <DialogHeader>
             <DialogTitle>Enter Edit Mode?</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">You are about to edit this document directly.</p>
+          <p className="text-subtle">You are about to edit this document directly.</p>
           <div className="mt-4 flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setConfirmEditOpen(false)}>Cancel</Button>
             <Button onClick={confirmStartEdit}>Start Editing</Button>
@@ -498,7 +498,7 @@ export function DocDetailClient({ doc }: DocDetailClientProps) {
           <DialogHeader>
             <DialogTitle>Delete Document?</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">This action cannot be undone.</p>
+          <p className="text-subtle">This action cannot be undone.</p>
           <div className="mt-4 flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setConfirmDeleteOpen(false)} disabled={deleting}>Cancel</Button>
             <Button onClick={() => void deleteDoc()} disabled={deleting} className="bg-red-600 hover:bg-red-500">

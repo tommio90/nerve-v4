@@ -13,9 +13,36 @@ import {
   Users,
   XCircle,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import type { CouncilSession, ModelAnalysis, ScoreDimension } from "@/lib/council/types";
 
@@ -53,10 +80,17 @@ function scoreTone(score: number) {
   return "text-red-300";
 }
 
-function recommendationTone(rec: CouncilSession["recommendation"]) {
-  if (rec === "approve") return "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
-  if (rec === "revise") return "bg-amber-500/15 text-amber-300 border-amber-500/30";
-  return "bg-red-500/15 text-red-300 border-red-500/30";
+function statusBadgeVariant(status: string) {
+  if (status === "decided") return "complete" as const;
+  if (status === "failed") return "failed" as const;
+  if (status === "debating") return "active" as const;
+  return "deferred" as const;
+}
+
+function recommendationBadgeVariant(rec: CouncilSession["recommendation"]) {
+  if (rec === "approve") return "complete" as const;
+  if (rec === "revise") return "active" as const;
+  return "failed" as const;
 }
 
 function modelPanelTone(model: "opus" | "o3" | "gemini" | "qwen") {
@@ -94,27 +128,22 @@ function SessionCard({
       session.status === "failed" ? <XCircle className="h-3.5 w-3.5" /> :
         session.status === "debating" ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Clock3 className="h-3.5 w-3.5" />;
 
-  const statusTone =
-    session.status === "decided" ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" :
-      session.status === "failed" ? "bg-red-500/15 text-red-300 border-red-500/30" :
-        session.status === "debating" ? "bg-amber-500/15 text-amber-300 border-amber-500/30" : "bg-black/40 text-slate-300 border-white/10";
-
   return (
-    <Card className="border-white/10 bg-black/40 p-0">
+    <Card className="border-border bg-surface-deep p-0">
       <button
         type="button"
-        className="w-full px-4 py-3 text-left hover:bg-black/40"
+        className="w-full px-4 py-3 text-left hover:bg-surface-deep"
         onClick={() => setExpanded((v) => !v)}
       >
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-foreground">{session.taskTitle}</p>
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${statusTone}`}>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-caption">
+              <Badge variant={statusBadgeVariant(session.status)} className="gap-1 rounded-full">
                 {statusIcon}
                 {session.status}
-              </span>
-              {session.venture ? <span className="rounded-full border border-white/10 bg-black/40 px-2 py-0.5">{session.venture}</span> : null}
+              </Badge>
+              {session.venture ? <Badge variant="outline" className="rounded-full">{session.venture}</Badge> : null}
               {session.entityType && session.entityId ? <span>{session.entityType} · {session.entityId.slice(0, 8)}</span> : null}
             </div>
             <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{session.taskDescription}</p>
@@ -132,7 +161,7 @@ function SessionCard({
       </button>
 
       {expanded ? (
-        <div className="space-y-4 border-t border-white/10 p-4">
+        <div className="space-y-4 border-t border-border p-4">
           <div>
             <div className="mb-2 flex items-center justify-between">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Task Description</p>
@@ -183,7 +212,7 @@ function SessionCard({
                           <span className="text-slate-200 uppercase">{analysis.stance}</span>
                         </div>
                         {analysis.challenges.length > 0 ? (
-                          <ul className="space-y-1 text-xs text-muted-foreground">
+                          <ul className="space-y-1 text-caption">
                             {analysis.challenges.map((challenge) => (
                               <li key={challenge} className="truncate">- {challenge}</li>
                             ))}
@@ -191,7 +220,7 @@ function SessionCard({
                         ) : null}
                       </div>
                     ) : (
-                      <p className="text-xs text-muted-foreground">Awaiting analysis...</p>
+                      <p className="text-caption">Awaiting analysis...</p>
                     )}
                   </div>
                 );
@@ -199,46 +228,46 @@ function SessionCard({
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div>
             <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Score Comparison</p>
-            <table className="w-full min-w-[768px] border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-white/10 text-muted-foreground">
-                  <th className="px-2 py-1 text-left font-medium">Dimension</th>
-                  <th className="px-2 py-1 text-left font-medium text-purple-300">Sonnet 4.5</th>
-                  <th className="px-2 py-1 text-left font-medium text-cyan-300">Gemini 2.5 Pro</th>
-                  <th className="px-2 py-1 text-left font-medium text-blue-300">DeepSeek R1</th>
-                  <th className="px-2 py-1 text-left font-medium text-orange-300">Qwen3 Coder</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="min-w-[768px] text-xs">
+              <TableHeader>
+                <TableRow className="border-border">
+                  <TableHead>Dimension</TableHead>
+                  <TableHead className="text-purple-300">Sonnet 4.5</TableHead>
+                  <TableHead className="text-cyan-300">Gemini 2.5 Pro</TableHead>
+                  <TableHead className="text-blue-300">DeepSeek R1</TableHead>
+                  <TableHead className="text-orange-300">Qwen3 Coder</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {dimensions.map((dimension) => (
-                  <tr key={dimension.key} className="border-b border-white/10">
-                    <td className="px-2 py-1.5 text-slate-300">{dimension.label}</td>
-                    <td className="px-2 py-1.5 text-purple-200">{session.opusAnalysis?.scores[dimension.key]?.toFixed(1) || "-"}</td>
-                    <td className="px-2 py-1.5 text-cyan-200">{session.geminiAnalysis?.scores[dimension.key]?.toFixed(1) || "-"}</td>
-                    <td className="px-2 py-1.5 text-blue-200">{session.o3Analysis?.scores[dimension.key]?.toFixed(1) || "-"}</td>
-                    <td className="px-2 py-1.5 text-orange-200">{session.qwenAnalysis?.scores[dimension.key]?.toFixed(1) || "-"}</td>
-                  </tr>
+                  <TableRow key={dimension.key} className="border-border">
+                    <TableCell className="text-slate-300">{dimension.label}</TableCell>
+                    <TableCell className="text-purple-200">{session.opusAnalysis?.scores[dimension.key]?.toFixed(1) || "-"}</TableCell>
+                    <TableCell className="text-cyan-200">{session.geminiAnalysis?.scores[dimension.key]?.toFixed(1) || "-"}</TableCell>
+                    <TableCell className="text-blue-200">{session.o3Analysis?.scores[dimension.key]?.toFixed(1) || "-"}</TableCell>
+                    <TableCell className="text-orange-200">{session.qwenAnalysis?.scores[dimension.key]?.toFixed(1) || "-"}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
-          <div className="rounded-lg border border-white/10 bg-black/40 p-3">
+          <div className="rounded-lg border border-border bg-surface-deep p-3">
             <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Council Verdict</p>
             <div className="flex flex-wrap items-center gap-3">
-              <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-white/10 bg-black/40">
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-border bg-surface-deep">
                 <span className={`text-lg font-semibold ${session.aggregateScore != null ? scoreTone(session.aggregateScore) : "text-muted-foreground"}`}>
                   {session.aggregateScore != null ? session.aggregateScore.toFixed(1) : "-"}
                 </span>
               </div>
               {session.recommendation ? (
-                <span className={`rounded-full border px-2.5 py-1 text-xs uppercase ${recommendationTone(session.recommendation)}`}>
+                <Badge variant={recommendationBadgeVariant(session.recommendation)} className="rounded-full uppercase">
                   {session.recommendation}
-                </span>
+                </Badge>
               ) : null}
-              {session.confidence ? <span className="text-xs text-muted-foreground">Confidence: {session.confidence}</span> : null}
+              {session.confidence ? <span className="text-caption">Confidence: {session.confidence}</span> : null}
             </div>
             {session.summary ? <p className="mt-2 text-sm text-slate-300">{session.summary}</p> : null}
           </div>
@@ -346,11 +375,11 @@ export default function CouncilPage() {
     <div className="synapse-page animate-fade-in space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="inline-flex items-center gap-2 synapse-heading text-foreground">
+          <h1 className="inline-flex items-center gap-2 title-3 text-foreground">
             <Users className="h-5 w-5 text-cyan" />
             Council of Models
           </h1>
-          <p className="text-sm text-muted-foreground">Three-model debate engine for project and task decisions.</p>
+          <p className="text-subtle">Three-model debate engine for project and task decisions.</p>
         </div>
         <Button className="gap-2" onClick={() => setOpenModal(true)}>
           <Plus className="h-4 w-4" />
@@ -358,26 +387,34 @@ export default function CouncilPage() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => {
-              setLoading(true);
-              setActiveTab(tab);
-            }}
-            className={`rounded-full border px-3 py-1 text-xs transition ${activeTab === tab ? "border-violet/40 bg-violet/15 text-violet" : "border-white/10 bg-black/40 text-muted-foreground hover:text-foreground"}`}
-          >
-            {tab} ({counts[tab] ?? 0})
-          </button>
-        ))}
-      </div>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          setLoading(true);
+          setActiveTab(value as (typeof tabs)[number]);
+        }}
+      >
+        <TabsList className="h-auto flex-wrap gap-2 bg-transparent p-0">
+          {tabs.map((tab) => (
+            <TabsTrigger
+              key={tab}
+              value={tab}
+              className="rounded-full border border-border bg-surface-deep px-3 py-1 text-xs data-[state=active]:border-violet/40 data-[state=active]:bg-violet/15 data-[state=active]:text-violet data-[state=active]:shadow-none"
+            >
+              {tab} ({counts[tab] ?? 0})
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {loading ? (
-        <Card className="border-white/10 bg-black/40 p-6 text-sm text-muted-foreground">Loading council sessions...</Card>
+        <div className="space-y-3">
+          <Skeleton className="h-24 w-full rounded-2xl" />
+          <Skeleton className="h-24 w-full rounded-2xl" />
+          <Skeleton className="h-24 w-full rounded-2xl" />
+        </div>
       ) : sessions.length === 0 ? (
-        <Card className="flex items-center gap-2 border-white/10 bg-black/40 p-6 text-sm text-muted-foreground">
+        <Card className="flex items-center gap-2 border-border bg-surface-deep p-6 text-subtle">
           <AlertTriangle className="h-4 w-4 text-amber-300" />
           No sessions in this filter.
         </Card>
@@ -389,66 +426,90 @@ export default function CouncilPage() {
         </div>
       )}
 
-      {openModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <Card className="w-full max-w-xl space-y-3 border-white/10 bg-black/40">
-            <div>
-              <h2 className="text-sm font-semibold text-foreground">New Council Session</h2>
-              <p className="text-xs text-muted-foreground">Create a new debate request for the council.</p>
+      <Dialog open={openModal} onOpenChange={setOpenModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>New Council Session</DialogTitle>
+            <DialogDescription>Create a new debate request for the council.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="council-task-title">Task Title</Label>
+              <Input
+                id="council-task-title"
+                placeholder="Task title"
+                value={form.taskTitle}
+                onChange={(event) => setForm((prev) => ({ ...prev, taskTitle: event.target.value }))}
+                className="border-border bg-surface-deep"
+              />
             </div>
-            <Input
-              placeholder="Task title"
-              value={form.taskTitle}
-              onChange={(event) => setForm((prev) => ({ ...prev, taskTitle: event.target.value }))}
-              className="border-white/10 bg-black/40"
-            />
-            <Textarea
-              placeholder="Task description"
-              value={form.taskDescription}
-              onChange={(event) => setForm((prev) => ({ ...prev, taskDescription: event.target.value }))}
-              className="border-white/10 bg-black/40"
-              rows={5}
-            />
-            <div className="grid gap-2 sm:grid-cols-2">
-              <select
-                value={form.venture}
-                onChange={(event) => setForm((prev) => ({ ...prev, venture: event.target.value }))}
-                className="h-9 rounded-lg border border-white/10 bg-black/40 px-3 text-sm text-slate-200"
-              >
-                <option value="">Select venture</option>
-                {ventures.map((venture) => (
-                  <option key={venture} value={venture}>
-                    {venture}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={form.entityType}
-                onChange={(event) => setForm((prev) => ({ ...prev, entityType: event.target.value as NewSessionForm["entityType"] }))}
-                className="h-9 rounded-lg border border-white/10 bg-black/40 px-3 text-sm text-slate-200"
-              >
-                <option value="">Entity type (optional)</option>
-                <option value="PROJECT">PROJECT</option>
-                <option value="TASK">TASK</option>
-              </select>
+            <div className="space-y-1.5">
+              <Label htmlFor="council-task-desc">Task Description</Label>
+              <Textarea
+                id="council-task-desc"
+                placeholder="Task description"
+                value={form.taskDescription}
+                onChange={(event) => setForm((prev) => ({ ...prev, taskDescription: event.target.value }))}
+                className="border-border bg-surface-deep"
+                rows={5}
+              />
             </div>
-            <Input
-              placeholder="Entity ID (optional)"
-              value={form.entityId}
-              onChange={(event) => setForm((prev) => ({ ...prev, entityId: event.target.value }))}
-              className="border-white/10 bg-black/40"
-            />
-            <div className="flex items-center justify-end gap-2">
-              <Button variant="outline" onClick={() => setOpenModal(false)}>
-                Cancel
-              </Button>
-              <Button onClick={createSession} disabled={submitting} className="bg-violet text-white hover:bg-violet/85">
-                {submitting ? "Submitting..." : "Submit"}
-              </Button>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Venture</Label>
+                <Select
+                  value={form.venture || undefined}
+                  onValueChange={(val) => setForm((prev) => ({ ...prev, venture: val }))}
+                >
+                  <SelectTrigger className="border-border bg-surface-deep">
+                    <SelectValue placeholder="Select venture" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ventures.map((venture) => (
+                      <SelectItem key={venture} value={venture}>
+                        {venture}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Entity Type</Label>
+                <Select
+                  value={form.entityType || undefined}
+                  onValueChange={(val) => setForm((prev) => ({ ...prev, entityType: val as NewSessionForm["entityType"] }))}
+                >
+                  <SelectTrigger className="border-border bg-surface-deep">
+                    <SelectValue placeholder="Entity type (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PROJECT">PROJECT</SelectItem>
+                    <SelectItem value="TASK">TASK</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </Card>
-        </div>
-      ) : null}
+            <div className="space-y-1.5">
+              <Label htmlFor="council-entity-id">Entity ID</Label>
+              <Input
+                id="council-entity-id"
+                placeholder="Entity ID (optional)"
+                value={form.entityId}
+                onChange={(event) => setForm((prev) => ({ ...prev, entityId: event.target.value }))}
+                className="border-border bg-surface-deep"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={createSession} disabled={submitting} className="bg-violet text-white hover:bg-violet/85">
+              {submitting ? "Submitting..." : "Submit"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

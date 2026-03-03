@@ -7,7 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, UserRound, X } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
+import { Plus, UserRound } from "lucide-react";
 
 type Contact = {
   id: string;
@@ -98,7 +102,7 @@ export default function CrmPage() {
         linkedin: form.linkedin || undefined,
         twitter: form.twitter || undefined,
         organization: form.organization || undefined,
-        personaId: form.personaId || undefined,
+        personaId: form.personaId === "NONE" ? undefined : form.personaId || undefined,
         notes: form.notes,
       }),
     });
@@ -127,8 +131,8 @@ export default function CrmPage() {
     <div className="synapse-page animate-fade-in space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="synapse-heading">CRM</h1>
-          <p className="text-sm text-muted-foreground">Manage your pipeline and persona fit signals.</p>
+          <h1 className="title-3">CRM</h1>
+          <p className="text-subtle">Manage your pipeline and persona fit signals.</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="gap-2">
           <Plus className="h-4 w-4" />
@@ -137,7 +141,7 @@ export default function CrmPage() {
       </div>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent onClose={() => setShowForm(false)}>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Create Contact</DialogTitle>
           </DialogHeader>
@@ -147,16 +151,23 @@ export default function CrmPage() {
             <Input value={form.linkedin} onChange={(e) => setForm({ ...form, linkedin: e.target.value })} placeholder="LinkedIn" />
             <Input value={form.twitter} onChange={(e) => setForm({ ...form, twitter: e.target.value })} placeholder="Twitter" />
             <Input value={form.organization} onChange={(e) => setForm({ ...form, organization: e.target.value })} placeholder="Organization" />
-            <select
-              className="w-full rounded-md border border-white/10 bg-transparent px-2 py-2 text-sm"
-              value={form.personaId}
-              onChange={(e) => setForm({ ...form, personaId: e.target.value })}
-            >
-              <option value="" className="bg-black">No persona</option>
-              {personas.map((persona) => (
-                <option key={persona.id} value={persona.id} className="bg-black">{persona.name}</option>
-              ))}
-            </select>
+            <div className="space-y-1">
+              <Label className="text-caption">Persona</Label>
+              <Select
+                value={form.personaId || "NONE"}
+                onValueChange={(value) => setForm({ ...form, personaId: value === "NONE" ? "" : value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="No persona" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="NONE">No persona</SelectItem>
+                  {personas.map((persona) => (
+                    <SelectItem key={persona.id} value={persona.id}>{persona.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" />
             <Button onClick={submit}>Create Contact</Button>
           </div>
@@ -164,25 +175,26 @@ export default function CrmPage() {
       </Dialog>
 
       <div className="flex flex-wrap items-center gap-2">
-        <select
-          className="rounded-md border border-white/10 bg-transparent px-2 py-1 text-xs"
-          value={filterPersona}
-          onChange={(e) => setFilterPersona(e.target.value)}
-        >
-          <option value="ALL" className="bg-black">All personas</option>
-          {personas.map((persona) => (
-            <option key={persona.id} value={persona.id} className="bg-black">{persona.name}</option>
-          ))}
-        </select>
+        <Select value={filterPersona} onValueChange={setFilterPersona}>
+          <SelectTrigger className="w-auto min-w-[140px]">
+            <SelectValue placeholder="All personas" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All personas</SelectItem>
+            {personas.map((persona) => (
+              <SelectItem key={persona.id} value={persona.id}>{persona.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button size="sm" variant={sortByScore ? "default" : "outline"} onClick={() => setSortByScore((prev) => !prev)}>
           Sort by persona score
         </Button>
       </div>
 
       {loading ? (
-        <Card className="animate-pulse space-y-3 p-5">
-          <div className="h-4 w-2/5 rounded-full bg-muted/50" />
-          <div className="h-3 w-4/5 rounded-full bg-muted/40" />
+        <Card className="space-y-3 p-5">
+          <Skeleton className="h-4 w-2/5" />
+          <Skeleton className="h-3 w-4/5" />
         </Card>
       ) : (
         <div className="grid gap-3 xl:grid-cols-5">
@@ -190,7 +202,7 @@ export default function CrmPage() {
             <div key={stage} className="space-y-2">
               <div className="flex items-center justify-between">
                 <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{stage}</h2>
-                <span className="text-xs text-muted-foreground">{grouped.get(stage)?.length ?? 0}</span>
+                <span className="text-caption">{grouped.get(stage)?.length ?? 0}</span>
               </div>
               <div className="space-y-2">
                 {(grouped.get(stage) ?? []).map((contact) => (
@@ -201,8 +213,8 @@ export default function CrmPage() {
                       </button>
                       <Badge className={scoreTone(contact.personaScore)}>{Math.round(contact.personaScore)}</Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground">{contact.organization || "No org"}</p>
-                    <p className="text-xs text-muted-foreground">{contact.notes?.slice(0, 60) || "No notes"}</p>
+                    <p className="text-caption">{contact.organization || "No org"}</p>
+                    <p className="text-caption">{contact.notes?.slice(0, 60) || "No notes"}</p>
                     <div className="flex items-center gap-2">
                       <Button size="sm" variant="outline" onClick={() => moveContact(contact, "prev")} disabled={stage === STAGES[0]}>Back</Button>
                       <Button size="sm" variant="outline" onClick={() => moveContact(contact, "next")} disabled={stage === STAGES[STAGES.length - 1]}>Advance</Button>
@@ -212,7 +224,7 @@ export default function CrmPage() {
                 {(grouped.get(stage) ?? []).length === 0 ? (
                   <Card className="flex flex-col items-center justify-center gap-2 py-6 text-center">
                     <UserRound className="h-5 w-5 text-muted-foreground" />
-                    <p className="text-xs text-muted-foreground">No contacts</p>
+                    <p className="text-caption">No contacts</p>
                   </Card>
                 ) : null}
               </div>
@@ -221,31 +233,35 @@ export default function CrmPage() {
         </div>
       )}
 
-      {selected ? (
-        <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/70" onClick={() => setSelected(null)} />
-          <div className="absolute right-0 top-0 h-full w-full max-w-lg bg-black/90 p-6 shadow-2xl transition-all animate-fade-in-up overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Contact Detail</h2>
-              <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+      <Sheet open={!!selected} onOpenChange={(open) => { if (!open) setSelected(null); }}>
+        <SheetContent className="sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Contact Detail</SheetTitle>
+            <SheetDescription>Edit contact information and pipeline data.</SheetDescription>
+          </SheetHeader>
+          {selected && (
             <div className="mt-4 space-y-3">
               <Input value={selected.name} onChange={(e) => setSelected({ ...selected, name: e.target.value })} />
               <Input value={selected.email ?? ""} onChange={(e) => setSelected({ ...selected, email: e.target.value })} placeholder="Email" />
               <Input value={selected.linkedin ?? ""} onChange={(e) => setSelected({ ...selected, linkedin: e.target.value })} placeholder="LinkedIn" />
               <Input value={selected.twitter ?? ""} onChange={(e) => setSelected({ ...selected, twitter: e.target.value })} placeholder="Twitter" />
               <Input value={selected.organization ?? ""} onChange={(e) => setSelected({ ...selected, organization: e.target.value })} placeholder="Organization" />
-              <select
-                className="w-full rounded-md border border-white/10 bg-transparent px-2 py-2 text-sm"
-                value={selected.pipelineStage}
-                onChange={(e) => setSelected({ ...selected, pipelineStage: e.target.value })}
-              >
-                {STAGES.map((stage) => (
-                  <option key={stage} value={stage} className="bg-black">{stage}</option>
-                ))}
-              </select>
+              <div className="space-y-1">
+                <Label className="text-caption">Pipeline Stage</Label>
+                <Select
+                  value={selected.pipelineStage}
+                  onValueChange={(value) => setSelected({ ...selected, pipelineStage: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STAGES.map((stage) => (
+                      <SelectItem key={stage} value={stage}>{stage}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <Textarea value={selected.notes} onChange={(e) => setSelected({ ...selected, notes: e.target.value })} placeholder="Notes" />
               <Textarea
                 value={selected.pains.join("\n")}
@@ -271,9 +287,9 @@ export default function CrmPage() {
                 Save Contact
               </Button>
             </div>
-          </div>
-        </div>
-      ) : null}
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

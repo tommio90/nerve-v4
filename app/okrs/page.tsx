@@ -7,6 +7,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { Target, Plus, Sparkles } from "lucide-react";
 
 type KeyResult = {
@@ -32,12 +35,6 @@ function progressForOkrs(keyResults: KeyResult[]) {
   if (!keyResults.length) return 0;
   const total = keyResults.reduce((acc, kr) => acc + (kr.target ? Math.min(100, (kr.current / kr.target) * 100) : 0), 0);
   return Math.round(total / keyResults.length);
-}
-
-function progressTone(value: number) {
-  if (value >= 80) return { bar: "bg-emerald-400", badge: "bg-emerald-400/20 text-emerald-300" };
-  if (value >= 50) return { bar: "bg-yellow-400", badge: "bg-yellow-400/20 text-yellow-300" };
-  return { bar: "bg-red-400", badge: "bg-red-400/20 text-red-300" };
 }
 
 export default function OkrsPage() {
@@ -87,8 +84,8 @@ export default function OkrsPage() {
     <div className="synapse-page animate-fade-in space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="synapse-heading">OKRs</h1>
-          <p className="text-sm text-muted-foreground">Track quarterly objectives and measurable key results.</p>
+          <h1 className="title-3">OKRs</h1>
+          <p className="text-subtle">Track quarterly objectives and measurable key results.</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="gap-2">
           <Plus className="h-4 w-4" />
@@ -97,7 +94,7 @@ export default function OkrsPage() {
       </div>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent onClose={() => setShowForm(false)}>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Create OKR</DialogTitle>
           </DialogHeader>
@@ -113,10 +110,10 @@ export default function OkrsPage() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse space-y-3 p-5">
-              <div className="h-4 w-2/5 rounded-full bg-muted/50" />
-              <div className="h-3 w-4/5 rounded-full bg-muted/40" />
-              <div className="h-3 w-1/3 rounded-full bg-muted/30" />
+            <Card key={i} className="space-y-3 p-5">
+              <Skeleton className="h-4 w-2/5" />
+              <Skeleton className="h-3 w-4/5" />
+              <Skeleton className="h-3 w-1/3" />
             </Card>
           ))}
         </div>
@@ -126,32 +123,29 @@ export default function OkrsPage() {
             <section key={quarterLabel} className="space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold">{quarterLabel}</h2>
-                <span className="text-xs text-muted-foreground">{items.length} OKRs</span>
+                <span className="text-caption">{items.length} OKRs</span>
               </div>
               <div className="grid gap-3">
                 {items.map((okr) => {
                   const progress = progressForOkrs(okr.keyResults);
-                  const tone = progressTone(progress);
                   return (
-                    <Card key={okr.id} className="group relative overflow-hidden transition-all duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] hover:border-violet/40 hover:shadow-violet-glow">
+                    <Card key={okr.id} className="group relative overflow-hidden transition-all duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] hover:border-ring hover:shadow-glow">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0 flex-1 space-y-2">
                           <Link href={`/okrs/${okr.id}`} className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight hover:text-cyan">
                             <Target className="h-4 w-4 text-cyan" />
                             <span className="truncate">{okr.title}</span>
                           </Link>
-                          {okr.description ? <p className="text-sm text-muted-foreground">{okr.description}</p> : null}
+                          {okr.description ? <p className="text-subtle">{okr.description}</p> : null}
                           <div className="space-y-1">
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <div className="flex items-center justify-between text-caption">
                               <span>{okr.keyResults.length} key results</span>
                               <span>{progress}% complete</span>
                             </div>
-                            <div className="h-2 w-full overflow-hidden rounded-full border border-white/10 bg-white/5">
-                              <div className={`h-full transition-all duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] ${tone.bar}`} style={{ width: `${progress}%` }} />
-                            </div>
+                            <Progress value={progress} />
                           </div>
                         </div>
-                        <span className={`rounded-full px-2 py-0.5 text-xs ${tone.badge}`}>{okr.status}</span>
+                        <StatusBadge status={okr.status} />
                       </div>
                     </Card>
                   );
@@ -161,7 +155,7 @@ export default function OkrsPage() {
                     <div className="rounded-full border border-violet/30 bg-violet/10 p-3">
                       <Sparkles className="h-6 w-6 text-violet" />
                     </div>
-                    <p className="text-sm text-muted-foreground">No OKRs yet — create your first objective.</p>
+                    <p className="text-subtle">No OKRs yet — create your first objective.</p>
                   </Card>
                 ) : null}
               </div>
@@ -172,7 +166,7 @@ export default function OkrsPage() {
               <div className="rounded-full border border-violet/30 bg-violet/10 p-3">
                 <Sparkles className="h-6 w-6 text-violet" />
               </div>
-              <p className="text-sm text-muted-foreground">No OKRs yet — create your first objective.</p>
+              <p className="text-subtle">No OKRs yet — create your first objective.</p>
             </Card>
           ) : null}
         </div>

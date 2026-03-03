@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 
 type Artifact = { id: string; title: string; type: string; mimeType: string; createdAt: string };
@@ -16,17 +18,28 @@ export default function ArtifactsPage() {
 
   return (
     <div className="synapse-page space-y-4">
-      <h1 className="synapse-heading">Artifacts</h1>
+      <h1 className="title-3">Artifacts</h1>
       {loading ? (
-        <Card className="h-20 animate-pulse bg-muted/20" />
+        <div className="space-y-3">
+          <Skeleton className="h-16 w-full rounded-2xl" />
+          <Skeleton className="h-16 w-full rounded-2xl" />
+          <Skeleton className="h-16 w-full rounded-2xl" />
+        </div>
       ) : artifacts.length === 0 ? (
-        <Card><p className="text-sm text-muted-foreground">No artifacts yet. They appear when tasks produce deliverables.</p></Card>
+        <Card>
+          <p className="text-subtle">No artifacts yet. They appear when tasks produce deliverables.</p>
+        </Card>
       ) : (
         <div className="grid gap-3">
           {artifacts.map((a) => (
-            <Card key={a.id}>
-              <Link href={`/artifacts/${a.id}`} className="text-sm font-medium hover:underline">{a.title}</Link>
-              <p className="text-xs text-muted-foreground">{a.type} · {new Date(a.createdAt).toLocaleDateString()}</p>
+            <Card key={a.id} className="p-0">
+              <CardContent className="flex items-center justify-between gap-3 pt-4">
+                <div>
+                  <Link href={`/artifacts/${a.id}`} className="text-sm font-medium hover:underline">{a.title}</Link>
+                  <p className="text-caption">{new Date(a.createdAt).toLocaleDateString()}</p>
+                </div>
+                <Badge variant="outline">{a.type}</Badge>
+              </CardContent>
             </Card>
           ))}
         </div>

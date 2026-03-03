@@ -23,7 +23,7 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-[10vh]">
       <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-md animate-fade-in"
+        className="fixed inset-0 bg-surface-deep backdrop-blur-md animate-fade-in"
         onClick={() => onOpenChange(false)}
       />
       <div className="relative z-50 w-full max-w-lg animate-fade-in-up">
@@ -43,11 +43,11 @@ export function DialogContent({
   onClose?: () => void;
 }) {
   return (
-    <div className={cn("glass-panel relative rounded-3xl p-6 shadow-violet-glow", className)}>
+    <div className={cn("glass-panel relative rounded-3xl p-6 shadow-glow", className)}>
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1 text-muted-foreground transition-colors duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] hover:bg-white/10 hover:text-foreground"
+          className="absolute right-4 top-4 rounded-lg p-1 text-muted-foreground transition-colors duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] hover:bg-surface-hover hover:text-foreground"
         >
           <X className="h-4 w-4" />
         </button>

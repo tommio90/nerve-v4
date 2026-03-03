@@ -35,7 +35,7 @@ const TASK_TYPE_COLORS: Record<string, string> = {
   ANALYSIS: "border-amber-500/40 text-amber-400 bg-amber-500/10",
   OUTREACH: "border-emerald-500/40 text-emerald-400 bg-emerald-500/10",
   PHONE_CALL: "border-rose-500/40 text-rose-400 bg-rose-500/10",
-  CUSTOM: "border-white/10 text-muted-foreground bg-black/40",
+  CUSTOM: "border-border text-muted-foreground bg-surface-deep",
 };
 
 const PRIORITY_COLORS: Record<number, string> = {
@@ -53,7 +53,7 @@ function TaskCard({ task }: { task: KanbanTask }) {
   return (
     <Link
       href={`/tasks/${task.id}`}
-      className="group block rounded-lg border border-border/70 bg-card p-2.5 transition-all duration-150 hover:border-cyan/30 hover:shadow-md hover:shadow-cyan/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan"
+      className="group block rounded-lg border border-border/70 bg-card p-2.5 transition-all duration-150 hover:border-ring hover:shadow-md hover:shadow-ring/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <p className="text-xs font-medium leading-snug group-hover:text-cyan sm:text-sm">{task.title}</p>
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
@@ -99,7 +99,7 @@ function ListView({ tasks }: { tasks: KanbanTask[] }) {
           <Link
             key={task.id}
             href={`/tasks/${task.id}`}
-            className="group flex items-center gap-3 rounded-lg border border-border/70 bg-background/40 p-3 transition-all duration-200 hover:border-cyan/30 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan"
+            className="group flex items-center gap-3 rounded-lg border border-border/70 bg-background/40 p-3 transition-all duration-200 hover:border-ring hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div className="flex shrink-0 flex-col items-center">
               <span className={`text-[10px] font-bold ${priorityColor}`}>P{task.priority}</span>

@@ -111,21 +111,21 @@ export function TaskExecutorButton({
         {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
         {running ? `Executing (${logCount} logs)` : "Execute Now"}
       </Button>
-      {running ? <p className="text-xs text-muted-foreground">Status: {currentStatus}</p> : null}
+      {running ? <p className="text-caption">Status: {currentStatus}</p> : null}
       {error ? <p className="text-xs text-red-400">{error}</p> : null}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl border border-white/15 bg-black/65 backdrop-blur-xl">
+        <DialogContent className="max-w-2xl border border-border bg-surface-deep backdrop-blur-xl">
           <DialogHeader>
             <DialogTitle>Execute Task with Context</DialogTitle>
-            <p className="text-sm text-muted-foreground">Optional context can refine execution output quality.</p>
+            <p className="text-subtle">Optional context can refine execution output quality.</p>
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="rounded-xl border border-white/10 bg-black/40 p-3">
+            <div className="rounded-xl border border-border bg-surface-deep p-3">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Task Preview</p>
               <p className="mt-2 text-sm font-medium text-foreground">{taskTitle}</p>
-              <p className="mt-1 line-clamp-4 text-sm text-muted-foreground">{taskDescription}</p>
+              <p className="mt-1 line-clamp-4 text-subtle">{taskDescription}</p>
             </div>
 
             <div className="space-y-2">
@@ -137,7 +137,7 @@ export function TaskExecutorButton({
                 value={context}
                 onChange={(event) => setContext(event.target.value)}
                 placeholder="Add specific instructions, constraints, or context to guide execution..."
-                className="min-h-[180px] bg-black/30 text-sm"
+                className="min-h-[180px] bg-surface-deep text-sm"
               />
             </div>
 

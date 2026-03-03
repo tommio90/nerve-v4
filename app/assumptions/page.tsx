@@ -7,6 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { AssumptionForm } from "@/components/assumptions/assumption-form";
 import { Plus, Sparkles } from "lucide-react";
 
@@ -37,12 +41,6 @@ function riskTone(level: number) {
   if (level === 3) return "bg-yellow-500/20 text-yellow-300 border-yellow-500/40";
   if (level === 2) return "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
   return "bg-cyan-500/20 text-cyan-300 border-cyan-500/40";
-}
-
-function confidenceTone(value: number) {
-  if (value >= 70) return "bg-emerald-400";
-  if (value >= 40) return "bg-yellow-400";
-  return "bg-red-400";
 }
 
 export default function AssumptionsPage() {
@@ -92,8 +90,8 @@ export default function AssumptionsPage() {
     <div className="synapse-page animate-fade-in space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="synapse-heading">Assumptions</h1>
-          <p className="text-sm text-muted-foreground">Log and validate the riskiest assumptions in your startup plan.</p>
+          <h1 className="title-3">Assumptions</h1>
+          <p className="text-subtle">Log and validate the riskiest assumptions in your startup plan.</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="gap-2">
           <Plus className="h-4 w-4" />
@@ -102,7 +100,7 @@ export default function AssumptionsPage() {
       </div>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent onClose={() => setShowForm(false)}>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Create Assumption</DialogTitle>
           </DialogHeader>
@@ -115,32 +113,23 @@ export default function AssumptionsPage() {
         </DialogContent>
       </Dialog>
 
-      <div className="flex flex-wrap items-center gap-1">
-        {FILTER_TABS.map((tab) => {
-          const active = filter === tab.key;
-          return (
-            <button
-              key={tab.key}
-              onClick={() => setFilter(tab.key)}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-                active
-                  ? "bg-violet/15 text-violet ring-1 ring-violet/35"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-            >
+      <Tabs value={filter} onValueChange={setFilter}>
+        <TabsList>
+          {FILTER_TABS.map((tab) => (
+            <TabsTrigger key={tab.key} value={tab.key}>
               {tab.label}
-            </button>
-          );
-        })}
-      </div>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse space-y-3 p-5">
-              <div className="h-4 w-2/5 rounded-full bg-muted/50" />
-              <div className="h-3 w-4/5 rounded-full bg-muted/40" />
-              <div className="h-3 w-1/3 rounded-full bg-muted/30" />
+            <Card key={i} className="space-y-3 p-5">
+              <Skeleton className="h-4 w-2/5" />
+              <Skeleton className="h-3 w-4/5" />
+              <Skeleton className="h-3 w-1/3" />
             </Card>
           ))}
         </div>
@@ -151,13 +140,13 @@ export default function AssumptionsPage() {
             return (
               <Card
                 key={assumption.id}
-                className="space-y-3 p-4 transition-all duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] hover:border-cyan/40 hover:shadow-cyan-glow"
+                className="space-y-3 p-4 transition-all duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] hover:border-ring hover:shadow-glow"
                 onClick={() => setExpandedId(expanded ? null : assumption.id)}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h3 className="text-sm font-semibold truncate">{assumption.title}</h3>
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <p className="mt-1 text-caption">
                       {assumption.description.length > 120 ? `${assumption.description.slice(0, 120)}...` : assumption.description}
                     </p>
                   </div>
@@ -165,10 +154,10 @@ export default function AssumptionsPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <Badge>{assumption.status}</Badge>
+                  <StatusBadge status={assumption.status} />
                   <span className="text-muted-foreground">Confidence</span>
-                  <div className="h-2 w-24 overflow-hidden rounded-full border border-white/10 bg-white/5">
-                    <div className={`h-full ${confidenceTone(assumption.confidence)}`} style={{ width: `${Math.min(100, Math.max(0, assumption.confidence))}%` }} />
+                  <div className="w-24">
+                    <Progress value={Math.min(100, Math.max(0, assumption.confidence))} />
                   </div>
                   <span className="text-muted-foreground">{Math.round(assumption.confidence)}%</span>
                 </div>
@@ -182,7 +171,7 @@ export default function AssumptionsPage() {
                         updateAssumption(assumption.id, { status });
                       }}
                       className={`rounded-full px-2 py-0.5 text-[11px] transition ${
-                        assumption.status === status ? "bg-white/15 text-foreground" : "text-muted-foreground hover:bg-white/10"
+                        assumption.status === status ? "bg-surface-hover text-foreground" : "text-muted-foreground hover:bg-surface-hover"
                       }`}
                     >
                       {status}
@@ -212,7 +201,7 @@ export default function AssumptionsPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <p className="text-xs text-muted-foreground">Evidence (append only)</p>
+                      <p className="text-caption">Evidence (append only)</p>
                       <Textarea
                         value={appendText[assumption.id] ?? ""}
                         onChange={(e) => setAppendText((prev) => ({ ...prev, [assumption.id]: e.target.value }))}
@@ -221,14 +210,14 @@ export default function AssumptionsPage() {
                       />
                       <Button onClick={(e) => { e.stopPropagation(); appendEvidence(assumption); }} size="sm">Append Evidence</Button>
                       {assumption.evidence ? (
-                        <div className="rounded-xl border border-white/10 bg-white/5 p-2 text-xs text-muted-foreground whitespace-pre-wrap">
+                        <div className="rounded-xl border border-border bg-surface p-2 text-caption whitespace-pre-wrap">
                           {assumption.evidence}
                         </div>
                       ) : null}
                     </div>
                   </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-caption">
                     {assumption.evidence ? `${assumption.evidence.slice(0, 80)}...` : "No evidence yet."}
                   </p>
                 )}
@@ -240,7 +229,7 @@ export default function AssumptionsPage() {
               <div className="rounded-full border border-violet/30 bg-violet/10 p-3">
                 <Sparkles className="h-6 w-6 text-violet" />
               </div>
-              <p className="text-sm text-muted-foreground">No assumptions yet — add the riskiest ones first.</p>
+              <p className="text-subtle">No assumptions yet — add the riskiest ones first.</p>
             </Card>
           ) : null}
         </div>

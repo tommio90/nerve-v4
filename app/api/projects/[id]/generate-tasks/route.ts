@@ -3,7 +3,7 @@ import OpenAI from "openai";
 import { fail, ok } from "@/lib/api";
 import { db } from "@/lib/db";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getClient() { return new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); }
 
 const generatedTaskSchema = z.object({
   tasks: z.array(
@@ -87,7 +87,7 @@ Constraints:
 - Priorities must be 1 (highest) to 5 (lowest)
 - Tasks should be sequenced logically by priority`;
 
-    const response = await client.chat.completions.create({
+    const response = await getClient().chat.completions.create({
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },
       messages: [

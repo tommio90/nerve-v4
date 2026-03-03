@@ -2,7 +2,9 @@ import OpenAI from "openai";
 import { fail, ok } from "@/lib/api";
 import { db } from "@/lib/db";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getClient() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 
 function extractJson(text: string) {
   const start = text.indexOf("{");
@@ -35,7 +37,7 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
       orderBy: [{ riskLevel: "desc" }, { updatedAt: "desc" }],
     });
 
-    const completion = await client.chat.completions.create({
+    const completion = await getClient().chat.completions.create({
       model: "gpt-4o",
       messages: [
         {

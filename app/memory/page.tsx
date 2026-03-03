@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type MemoryDoc = {
   id: string;
@@ -44,7 +46,7 @@ function renderMarkdown(md: string) {
     if (line.startsWith("```")) {
       if (inCodeBlock) {
         elements.push(
-          <pre key={key} className="my-3 overflow-x-auto rounded-lg bg-black/50 p-4 text-xs text-muted-foreground">
+          <pre key={key} className="my-3 overflow-x-auto rounded-lg bg-surface-deep p-4 text-caption">
             <code>{codeLines.join("\n")}</code>
           </pre>
         );
@@ -59,7 +61,7 @@ function renderMarkdown(md: string) {
     if (line.startsWith("# ")) elements.push(<h1 key={key} className="mb-3 mt-5 text-xl font-bold text-white">{line.slice(2)}</h1>);
     else if (line.startsWith("## ")) elements.push(<h2 key={key} className="mb-2 mt-4 text-lg font-semibold text-white">{line.slice(3)}</h2>);
     else if (line.startsWith("### ")) elements.push(<h3 key={key} className="mb-2 mt-3 text-base font-semibold text-slate-200">{line.slice(4)}</h3>);
-    else if (line.startsWith("---")) elements.push(<hr key={key} className="my-4 border-white/10" />);
+    else if (line.startsWith("---")) elements.push(<hr key={key} className="my-4 border-border" />);
     else if (line.startsWith("- ") || line.startsWith("* ")) elements.push(
       <div key={key} className="flex gap-2 py-0.5 pl-4 text-sm text-slate-300">
         <span className="text-muted-foreground">•</span>
@@ -84,7 +86,6 @@ export default function MemoryPage() {
       const res = await fetch("/api/docs");
       const data = await res.json();
       const memDocs = (data.docs || []).filter((d: MemoryDoc) => d.category === "memory");
-      // Sort: MEMORY.md first, then by date descending
       memDocs.sort((a: MemoryDoc, b: MemoryDoc) => {
         if (a.source === "MEMORY.md") return -1;
         if (b.source === "MEMORY.md") return 1;
@@ -119,26 +120,32 @@ export default function MemoryPage() {
   if (selectedDoc) {
     return (
       <div className="synapse-page space-y-4">
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setSelectedDoc(null)}
-          className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition"
+          className="gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
         >
           ← Back to memory vault
-        </button>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h1 className="text-lg font-semibold text-white">{selectedDoc.title}</h1>
-              <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                {selectedDoc.source && <span className="font-mono">{selectedDoc.source}</span>}
-                <span>{formatDate(selectedDoc.createdAt)}</span>
-                <span>Updated <RelativeTime iso={selectedDoc.updatedAt} /></span>
+        </Button>
+        <Card className="p-0">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">{selectedDoc.title}</CardTitle>
+                <div className="mt-1 flex items-center gap-3 text-caption">
+                  {selectedDoc.source && <span className="font-mono">{selectedDoc.source}</span>}
+                  <span>{formatDate(selectedDoc.createdAt)}</span>
+                  <span>Updated <RelativeTime iso={selectedDoc.updatedAt} /></span>
+                </div>
               </div>
+              <span className="text-2xl">🧠</span>
             </div>
-            <span className="text-2xl">🧠</span>
-          </div>
-          <div>{renderMarkdown(selectedDoc.content)}</div>
-        </div>
+          </CardHeader>
+          <CardContent>
+            {renderMarkdown(selectedDoc.content)}
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -147,12 +154,12 @@ export default function MemoryPage() {
     <div className="synapse-page space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="synapse-heading">Memory Vault</h1>
-          <p className="text-sm text-muted-foreground">Daily notes, long-term memory, and context files</p>
+          <h1 className="title-3">Memory Vault</h1>
+          <p className="text-subtle">Daily notes, long-term memory, and context files</p>
         </div>
         <div className="flex items-center gap-3">
           {syncResult && (
-            <span className="text-xs text-muted-foreground animate-in fade-in">{syncResult}</span>
+            <span className="text-caption animate-in fade-in">{syncResult}</span>
           )}
           <Button variant="outline" size="sm" onClick={handleSync} disabled={syncing}>
             {syncing ? "Syncing…" : "🔄 Sync Now"}
@@ -163,14 +170,14 @@ export default function MemoryPage() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="h-20 animate-pulse bg-muted/20" />
+            <Skeleton key={i} className="h-20 rounded-2xl" />
           ))}
         </div>
       ) : docs.length === 0 ? (
         <Card className="flex flex-col items-center justify-center p-12 text-center">
           <span className="mb-3 text-4xl">🧠</span>
           <h3 className="text-sm font-semibold text-white">No memory files synced yet</h3>
-          <p className="mt-1 text-xs text-muted-foreground">Click "Sync Now" to import memory files from your workspace</p>
+          <p className="mt-1 text-caption">Click &quot;Sync Now&quot; to import memory files from your workspace</p>
         </Card>
       ) : (
         <div className="space-y-2">
@@ -180,7 +187,7 @@ export default function MemoryPage() {
               <button
                 key={doc.id}
                 onClick={() => setSelectedDoc(doc)}
-                className="w-full rounded-xl border border-white/10 bg-white/5 p-4 text-left transition hover:border-violet/35 hover:bg-white/10"
+                className="w-full rounded-xl border border-border bg-surface p-4 text-left transition hover:border-ring hover:bg-surface-hover"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0 flex-1">
@@ -188,12 +195,12 @@ export default function MemoryPage() {
                       <span>{isLongTerm ? "🧠" : "📝"}</span>
                       <h3 className="text-sm font-semibold text-white truncate">{doc.title}</h3>
                       {isLongTerm && (
-                        <span className="rounded-full bg-violet/20 px-2 py-0.5 text-[10px] font-medium text-violet">
+                        <Badge className="border-violet/30 bg-violet/20 text-[10px] text-violet">
                           long-term
-                        </span>
+                        </Badge>
                       )}
                     </div>
-                    <p className="mt-0.5 text-xs text-muted-foreground truncate">
+                    <p className="mt-0.5 text-caption truncate">
                       {doc.source && <span className="font-mono">{doc.source}</span>}
                       {doc.source && " · "}
                       Updated <RelativeTime iso={doc.updatedAt} />

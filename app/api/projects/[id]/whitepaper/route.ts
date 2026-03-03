@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { fail, ok } from "@/lib/api";
 import { buildDocTags, serializeTags } from "@/lib/doc-tags";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getClient() { return new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); }
 
 // Schema for linking existing doc
 const linkSchema = z.object({ docId: z.string().cuid() });
@@ -27,7 +27,7 @@ Project title: ${project.title}
 Description: ${project.description}
 Reasoning: ${project.reasoning || 'N/A'}
 `;
-    const response = await client.chat.completions.create({
+    const response = await getClient().chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: "Return only markdown content, no explanations." },

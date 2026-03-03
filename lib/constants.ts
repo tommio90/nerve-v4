@@ -1,5 +1,4 @@
 export const NAV_ITEMS = [
-  { href: "/", label: "Dashboard", icon: "LayoutDashboard" },
   { href: "/projects", label: "Projects", icon: "FolderKanban" },
   { href: "/docs", label: "Docs", icon: "FileText" },
 ];

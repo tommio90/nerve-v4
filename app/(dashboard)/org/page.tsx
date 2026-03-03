@@ -15,8 +15,26 @@ import {
   type Edge,
 } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Bot, Plus, Pencil, Trash2, X, GitBranch } from "lucide-react";
+import { Bot, Plus, Pencil, Trash2, GitBranch } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -25,10 +43,10 @@ type OrgMember = {
   name: string;
   role: string;
   department: string | null;
-  type: string; // "human" | "agent"
+  type: string;
   avatar: string | null;
   initials: string | null;
-  status: string; // "active" | "away" | "offline"
+  status: string;
   parentId: string | null;
   metadata: string;
   createdAt: string;
@@ -56,6 +74,8 @@ const EMPTY_FORM: MemberForm = {
   parentId: "",
 };
 
+const NONE_PARENT = "__none__";
+
 // ─── Dept Colors ──────────────────────────────────────────────────────────────
 
 const DEPT_PALETTE: Record<string, string> = {
@@ -79,7 +99,6 @@ const DEPT_PALETTE: Record<string, string> = {
 function deptColor(dept: string | null) {
   if (!dept) return "#6b7280";
   if (DEPT_PALETTE[dept]) return DEPT_PALETTE[dept];
-  // deterministic color from string hash
   let h = 0;
   for (let i = 0; i < dept.length; i++) h = dept.charCodeAt(i) + ((h << 5) - h);
   const hue = Math.abs(h) % 360;
@@ -114,7 +133,7 @@ function buildLayout(members: OrgMember[]): Map<string, { x: number; y: number }
 
   const positions = new Map<string, { x: number; y: number }>();
   function assignPos(id: string, cx: number, y: number) {
-    positions.set(id, { x: cx - 90, y }); // 90 = half node width
+    positions.set(id, { x: cx - 90, y });
     const children = childrenMap.get(id) ?? [];
     const totalWidth = children.reduce((s, c) => s + (subtreeWidths.get(c) ?? 1), 0);
     let startX = cx - ((totalWidth - 1) * GAP_X) / 2;
@@ -125,7 +144,7 @@ function buildLayout(members: OrgMember[]): Map<string, { x: number; y: number }
     });
   }
 
-  let rootTotalW = roots.reduce((s, r) => s + (subtreeWidths.get(r.id) ?? 1), 0);
+  const rootTotalW = roots.reduce((s, r) => s + (subtreeWidths.get(r.id) ?? 1), 0);
   let rx = -((rootTotalW - 1) * GAP_X) / 2;
   roots.forEach((root) => {
     const w = subtreeWidths.get(root.id) ?? 1;
@@ -151,10 +170,9 @@ function OrgCard({ data }: { data: NodeData }) {
   return (
     <div
       style={{ borderColor: isAgent ? "rgba(6,182,212,0.5)" : "rgba(255,255,255,0.1)" }}
-      className={`relative w-[180px] rounded-xl border bg-[rgba(8,8,12,0.92)] shadow-xl transition-all hover:scale-[1.02] ${isAgent ? "shadow-cyan-500/10" : ""}`}
+      className={`relative w-[180px] rounded-xl border bg-popover shadow-xl transition-all hover:scale-[1.02] ${isAgent ? "shadow-cyan-500/10" : ""}`}
     >
-      <Handle type="target" position={Position.Top} className="!h-2 !w-2 !border-0 !bg-white/20" />
-      {/* Dept strip */}
+      <Handle type="target" position={Position.Top} className="!h-2 !w-2 !border-0 !bg-border" />
       <div
         className="h-[3px] w-full rounded-t-xl"
         style={{ background: color }}
@@ -169,7 +187,6 @@ function OrgCard({ data }: { data: NodeData }) {
           </div>
         )}
         <div className="flex items-center gap-2.5">
-          {/* Avatar */}
           {data.avatar ? (
             <img
               src={data.avatar}
@@ -187,18 +204,16 @@ function OrgCard({ data }: { data: NodeData }) {
               {isAgent ? <Bot className="h-4 w-4" /> : initials}
             </div>
           )}
-          {/* Info */}
           <div className="min-w-0 flex-1">
             <div className="truncate text-[11px] font-semibold text-white">{data.name}</div>
             <div className="truncate text-[10px] text-zinc-400">{data.role}</div>
           </div>
           {isAgent && (
-            <span className="shrink-0 rounded bg-cyan/20 px-1 py-0.5 text-[8px] font-bold text-cyan">
+            <Badge variant="proposed" className="shrink-0 px-1 py-0 text-[8px] font-bold">
               AI
-            </span>
+            </Badge>
           )}
         </div>
-        {/* Status + actions */}
         <div className="mt-2 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <span
@@ -228,7 +243,7 @@ function OrgCard({ data }: { data: NodeData }) {
           </div>
         </div>
       </div>
-      <Handle type="source" position={Position.Bottom} className="!h-2 !w-2 !border-0 !bg-white/20" />
+      <Handle type="source" position={Position.Bottom} className="!h-2 !w-2 !border-0 !bg-border" />
     </div>
   );
 }
@@ -255,83 +270,86 @@ function MemberModal({
   const [form, setForm] = useState<MemberForm>(initial);
   useEffect(() => setForm(initial), [initial]);
 
-  if (!open) return null;
-
   const set = (k: keyof MemberForm, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[rgba(8,8,12,0.97)] p-6 shadow-2xl">
-        <button onClick={onClose} className="absolute right-4 top-4 text-zinc-500 hover:text-white">
-          <X className="h-4 w-4" />
-        </button>
-        <h2 className="mb-5 text-sm font-semibold text-white">
-          {editingId ? "Edit Member" : "Add Member"}
-        </h2>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{editingId ? "Edit Member" : "Add Member"}</DialogTitle>
+        </DialogHeader>
         <div className="space-y-3">
           {(
             [
-              { label: "Name *", key: "name", placeholder: "Full name" },
-              { label: "Role *", key: "role", placeholder: "e.g. VP of AI" },
-              { label: "Department", key: "department", placeholder: "e.g. Artificial Intelligence" },
-              { label: "Initials", key: "initials", placeholder: "e.g. GT (optional)" },
-              { label: "Avatar URL", key: "avatar", placeholder: "https://… (optional)" },
-            ] as { label: string; key: keyof MemberForm; placeholder: string }[]
-          ).map(({ label, key, placeholder }) => (
-            <div key={key}>
-              <label className="mb-1 block text-[10px] text-zinc-400">{label}</label>
-              <input
+              { label: "Name", key: "name", placeholder: "Full name", required: true },
+              { label: "Role", key: "role", placeholder: "e.g. VP of AI", required: true },
+              { label: "Department", key: "department", placeholder: "e.g. Artificial Intelligence", required: false },
+              { label: "Initials", key: "initials", placeholder: "e.g. GT (optional)", required: false },
+              { label: "Avatar URL", key: "avatar", placeholder: "https://… (optional)", required: false },
+            ] as { label: string; key: keyof MemberForm; placeholder: string; required: boolean }[]
+          ).map(({ label, key, placeholder, required }) => (
+            <div key={key} className="space-y-1">
+              <Label htmlFor={`member-${key}`} className="text-[10px] text-zinc-400">
+                {label}{required ? " *" : ""}
+              </Label>
+              <Input
+                id={`member-${key}`}
                 value={form[key]}
                 onChange={(e) => set(key, e.target.value)}
                 placeholder={placeholder}
-                className="w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-200 placeholder:text-zinc-600 focus:border-cyan/40 focus:outline-none"
               />
             </div>
           ))}
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1 block text-[10px] text-zinc-400">Type</label>
-              <select
-                value={form.type}
-                onChange={(e) => set("type", e.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-200"
-              >
-                <option value="human">👤 Human</option>
-                <option value="agent">🤖 AI Agent</option>
-              </select>
+            <div className="space-y-1">
+              <Label className="text-[10px] text-zinc-400">Type</Label>
+              <Select value={form.type} onValueChange={(v) => set("type", v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="human">👤 Human</SelectItem>
+                  <SelectItem value="agent">🤖 AI Agent</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <label className="mb-1 block text-[10px] text-zinc-400">Status</label>
-              <select
-                value={form.status}
-                onChange={(e) => set("status", e.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-200"
-              >
-                <option value="active">● Active</option>
-                <option value="away">● Away</option>
-                <option value="offline">● Offline</option>
-              </select>
+            <div className="space-y-1">
+              <Label className="text-[10px] text-zinc-400">Status</Label>
+              <Select value={form.status} onValueChange={(v) => set("status", v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">● Active</SelectItem>
+                  <SelectItem value="away">● Away</SelectItem>
+                  <SelectItem value="offline">● Offline</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
-          <div>
-            <label className="mb-1 block text-[10px] text-zinc-400">Reports To</label>
-            <select
-              value={form.parentId}
-              onChange={(e) => set("parentId", e.target.value)}
-              className="w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-200"
+          <div className="space-y-1">
+            <Label className="text-[10px] text-zinc-400">Reports To</Label>
+            <Select
+              value={form.parentId || NONE_PARENT}
+              onValueChange={(v) => set("parentId", v === NONE_PARENT ? "" : v)}
             >
-              <option value="">— No parent (root) —</option>
-              {members
-                .filter((m) => m.id !== editingId)
-                .map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} — {m.role}
-                  </option>
-                ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE_PARENT}>— No parent (root) —</SelectItem>
+                {members
+                  .filter((m) => m.id !== editingId)
+                  .map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.name} — {m.role}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
-        <div className="mt-5 flex justify-end gap-2">
+        <DialogFooter>
           <Button variant="ghost" onClick={onClose} className="text-xs">
             Cancel
           </Button>
@@ -341,9 +359,9 @@ function MemberModal({
           >
             {editingId ? "Save Changes" : "Add Member"}
           </Button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -370,8 +388,6 @@ export default function OrgPage() {
   }, []);
 
   useEffect(() => { void load(); }, [load]);
-
-  // ── Event handlers ──
 
   const handleEdit = useCallback((m: OrgMember) => {
     setEditingMember(m);
@@ -423,8 +439,6 @@ export default function OrgPage() {
     await load();
   };
 
-  // ── Build ReactFlow nodes + edges ──
-
   const { nodes, edges } = useMemo<{ nodes: Node[]; edges: Edge[] }>(() => {
     if (!members.length) return { nodes: [], edges: [] };
 
@@ -453,7 +467,6 @@ export default function OrgPage() {
   const [rfNodes, , onNodesChange] = useNodesState(nodes);
   const [rfEdges, , onEdgesChange] = useEdgesState(edges);
 
-  // Sync state when members change
   const [key, setKey] = useState(0);
   useEffect(() => setKey((k) => k + 1), [members]);
 
@@ -467,11 +480,11 @@ export default function OrgPage() {
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between">
         <div>
-          <h1 className="synapse-heading flex items-center gap-2">
+          <h1 className="title-3 flex items-center gap-2">
             <GitBranch className="h-5 w-5 text-violet" />
             Live Org Chart
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-subtle">
             {humanCount} human{humanCount !== 1 ? "s" : ""} · {agentCount} AI agent{agentCount !== 1 ? "s" : ""}
           </p>
         </div>
@@ -507,16 +520,20 @@ export default function OrgPage() {
           AI Agent
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="h-3 w-3 rounded border border-white/10 bg-zinc-800" />
+          <div className="h-3 w-3 rounded border border-border bg-zinc-800" />
           Human
         </div>
       </div>
 
       {/* Chart */}
-      <div className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-[rgba(4,4,8,0.8)]">
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-border bg-popover">
         {loading ? (
-          <div className="flex h-full items-center justify-center text-sm text-zinc-600">
-            Loading org chart…
+          <div className="flex h-full items-center justify-center">
+            <div className="flex gap-6">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-24 w-[180px] rounded-xl" />
+              ))}
+            </div>
           </div>
         ) : members.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
@@ -553,7 +570,7 @@ export default function OrgPage() {
               color="rgba(255,255,255,0.04)"
             />
             <Controls
-              className="!border-white/10 !bg-[rgba(8,8,12,0.9)]"
+              className="!border-border !bg-popover"
               showInteractive={false}
             />
             <MiniMap
@@ -562,7 +579,7 @@ export default function OrgPage() {
                 return d.type === "agent" ? "rgba(6,182,212,0.4)" : "rgba(255,255,255,0.15)";
               }}
               maskColor="rgba(0,0,0,0.6)"
-              className="!rounded-xl !border !border-white/10 !bg-[rgba(8,8,12,0.9)]"
+              className="!rounded-xl !border !border-border !bg-popover"
             />
           </ReactFlow>
         )}
